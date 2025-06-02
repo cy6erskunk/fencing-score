@@ -6,6 +6,7 @@ interface ResetDrawerProps {
   onClose: () => void;
   onResetTime: () => void;
   onResetScore: () => void;
+  onResetCards: () => void;
   onResetAll: () => void;
 }
 
@@ -14,6 +15,7 @@ const ResetDrawer: React.FC<ResetDrawerProps> = ({
   onClose,
   onResetTime,
   onResetScore,
+  onResetCards,
   onResetAll,
 }) => {
   if (!isOpen) return null;
@@ -50,6 +52,13 @@ const ResetDrawer: React.FC<ResetDrawerProps> = ({
               className="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors"
             >
               Reset Score
+            </button>
+
+            <button
+              onClick={() => { onResetCards(); onClose(); }}
+              className="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors"
+            >
+              Reset Cards
             </button>
             
             <button
