@@ -100,6 +100,14 @@ const Scoreboard: React.FC = () => {
     }));
   }, []);
 
+  const handleResetCards = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      leftFencer: { ...prev.leftFencer, cards: [], passivityCards: [] },
+      rightFencer: { ...prev.rightFencer, cards: [], passivityCards: [] }
+    }));
+  }, []);
+
   const handleResetAll = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -136,27 +144,89 @@ const Scoreboard: React.FC = () => {
   }, []);
 
   const handleAddCard = useCallback((side: 'left' | 'right', card: Card) => {
-    setState(prev => ({
-      ...prev,
-      [side === 'left' ? 'leftFencer' : 'rightFencer']: {
-        ...prev[side === 'left' ? 'leftFencer' : 'rightFencer'],
-        cards: [...prev[side === 'left' ? 'leftFencer' : 'rightFencer'].cards, card]
+    setState(prev => {
+      const fencer = side === 'left' ? 'leftFencer' : 'rightFencer';
+      const hasCard = prev[fencer].cards.includes(card);
+
+      // If yellow card already exists, remove it
+      if (hasCard && card === 'yellow') {
+        return {
+          ...prev,
+          [fencer]: {
+            ...prev[fencer],
+            cards: prev[fencer].cards.filter(c => c !== card)
+          }
+        };
       }
-    }));
+
+      // If yellow card doesn't exist yet, add it
+      if (!hasCard && card === 'yellow') {
+        return {
+          ...prev,
+          [fencer]: {
+            ...prev[fencer],
+            cards: [...prev[fencer].cards, card]
+          }
+        };
+      }
+
+      // For red cards, always add them
+      if (card === 'red') {
+        return {
+          ...prev,
+          [fencer]: {
+            ...prev[fencer],
+            cards: [...prev[fencer].cards, card]
+          }
+        };
+      }
+
+      return prev;
+    });
   }, []);
 
   const handleAddPassivityCards = useCallback((card: PassivityCard) => {
-    setState(prev => ({
-      ...prev,
-      leftFencer: {
-        ...prev.leftFencer,
-        passivityCards: [...prev.leftFencer.passivityCards, card]
-      },
-      rightFencer: {
-        ...prev.rightFencer,
-        passivityCards: [...prev.rightFencer.passivityCards, card]
+    setState(prev => {
+      // Only allow passivity cards in elimination matches
+      if (prev.matchType !== 'elimination') {
+        return prev;
       }
-    }));
+
+      // If the card already exists, remove it
+      if (prev.leftFencer.passivityCards.includes(card)) {
+        // If removing yellow, also remove red
+        const cardsToRemove = card === 'pYellow' ? ['pYellow', 'pRed'] : [card];
+        return {
+          ...prev,
+          leftFencer: {
+            ...prev.leftFencer,
+            passivityCards: prev.leftFencer.passivityCards.filter(c => !cardsToRemove.includes(c))
+          },
+          rightFencer: {
+            ...prev.rightFencer,
+            passivityCards: prev.rightFencer.passivityCards.filter(c => !cardsToRemove.includes(c))
+          }
+        };
+      }
+      
+      // If trying to add red without yellow, do nothing
+      if (card === 'pRed' && !prev.leftFencer.passivityCards.includes('pYellow')) {
+        return prev;
+      }
+
+      // Add the new card
+      return {
+        ...prev,
+        leftFencer: {
+          ...prev.leftFencer,
+          passivityCards: [...prev.leftFencer.passivityCards, card]
+        },
+        rightFencer: {
+          ...prev.rightFencer,
+          passivityCards: [...prev.rightFencer.passivityCards, card]
+        }
+      };
+    });
   }, []);
 
   const handleLeftScoreChange = useCallback((score: number) => {
@@ -172,6 +242,10 @@ const Scoreboard: React.FC = () => {
       rightFencer: { ...prev.rightFencer, score }
     }));
   }, []);
+
+  const hasYellowPassivityCard = state.leftFencer.passivityCards.includes('pYellow');
+  const hasRedPassivityCard = state.leftFencer.passivityCards.includes('pRed');
+  const isEliminationMatch = state.matchType === 'elimination';
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-between p-4 sm:p-6">
@@ -236,6 +310,7 @@ const Scoreboard: React.FC = () => {
         onClose={() => setShowResetDrawer(false)}
         onResetTime={handleResetTime}
         onResetScore={handleResetScore}
+        onResetCards={handleResetCards}
         onResetAll={handleResetAll}
       />
 
@@ -246,9 +321,12 @@ const Scoreboard: React.FC = () => {
         onMatchTypeChange={handleMatchTypeChange}
         onAddCard={handleAddCard}
         onAddPassivityCards={handleAddPassivityCards}
+        hasYellowPassivityCard={hasYellowPassivityCard}
+        hasRedPassivityCard={hasRedPassivityCard}
+        isEliminationMatch={isEliminationMatch}
       />
     </div>
   );
 };
 
-export default Scoreboard
+export default Scoreboard;

@@ -88,4 +88,4 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
   );
 };
 
-export default ScorePanel
+export default ScorePanel;

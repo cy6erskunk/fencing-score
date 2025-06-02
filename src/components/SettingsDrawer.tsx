@@ -10,6 +10,9 @@ interface SettingsDrawerProps {
   onMatchTypeChange: (type: MatchType) => void;
   onAddCard: (side: 'left' | 'right', card: 'yellow' | 'red') => void;
   onAddPassivityCards: (card: 'pYellow' | 'pRed') => void;
+  hasYellowPassivityCard: boolean;
+  hasRedPassivityCard: boolean;
+  isEliminationMatch: boolean;
 }
 
 const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
@@ -19,6 +22,9 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   onMatchTypeChange,
   onAddCard,
   onAddPassivityCards,
+  hasYellowPassivityCard,
+  hasRedPassivityCard,
+  isEliminationMatch,
 }) => {
   if (!isOpen) return null;
 
@@ -93,23 +99,36 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm text-gray-400">Passivity Cards (Both Fencers)</label>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => onAddPassivityCards('pYellow')}
-                  className="flex-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 py-2 px-4 rounded-lg transition-colors"
-                >
-                  P-Yellow
-                </button>
-                <button
-                  onClick={() => onAddPassivityCards('pRed')}
-                  className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-500 py-2 px-4 rounded-lg transition-colors"
-                >
-                  P-Red
-                </button>
+            {isEliminationMatch && (
+              <div className="space-y-2">
+                <label className="text-sm text-gray-400">Passivity Cards (Both Fencers)</label>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => onAddPassivityCards('pYellow')}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                      hasYellowPassivityCard
+                        ? 'bg-yellow-500 text-black'
+                        : 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500'
+                    }`}
+                  >
+                    P-Yellow
+                  </button>
+                  <button
+                    onClick={() => onAddPassivityCards('pRed')}
+                    disabled={!hasYellowPassivityCard}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
+                      hasRedPassivityCard
+                        ? 'bg-red-500 text-white'
+                        : hasYellowPassivityCard
+                          ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500'
+                          : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    P-Red
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -117,4 +136,4 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   );
 };
 
-export default SettingsDrawer
+export default SettingsDrawer;
