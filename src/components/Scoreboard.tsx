@@ -309,6 +309,7 @@ const Scoreboard: React.FC = () => {
           currentPeriod={state.currentPeriod} 
           totalPeriods={state.matchType === 'elimination' ? 3 : 1}
           matchType={state.matchType}
+          isBreak={state.isBreak}
         />
         
         <div className="mt-12 flex flex-col items-center space-y-6">
