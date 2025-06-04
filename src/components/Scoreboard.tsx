@@ -162,6 +162,13 @@ const Scoreboard: React.FC = () => {
     }));
   }, []);
 
+  const handleTimeChange = useCallback((newTime: number) => {
+    setState(prev => ({
+      ...prev,
+      timeRemaining: newTime
+    }));
+  }, []);
+
   const handleAddCard = useCallback((side: 'left' | 'right', card: Card) => {
     setState(prev => {
       const fencer = side === 'left' ? 'leftFencer' : 'rightFencer';
@@ -344,6 +351,8 @@ const Scoreboard: React.FC = () => {
         hasYellowPassivityCard={hasYellowPassivityCard}
         hasRedPassivityCard={hasRedPassivityCard}
         isEliminationMatch={isEliminationMatch}
+        timeRemaining={state.timeRemaining}
+        onTimeChange={handleTimeChange}
       />
     </div>
   );
