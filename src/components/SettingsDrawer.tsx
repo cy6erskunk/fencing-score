@@ -13,6 +13,8 @@ interface SettingsDrawerProps {
   hasYellowPassivityCard: boolean;
   hasRedPassivityCard: boolean;
   isEliminationMatch: boolean;
+  timeRemaining: number;
+  onTimeChange: (seconds: number) => void;
 }
 
 const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
@@ -25,8 +27,29 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   hasYellowPassivityCard,
   hasRedPassivityCard,
   isEliminationMatch,
+  timeRemaining,
+  onTimeChange,
 }) => {
   if (!isOpen) return null;
+
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
+
+  const handleMinutesChange = (increment: boolean) => {
+    const newMinutes = increment 
+      ? (minutes + 1) % 10 
+      : minutes === 0 ? 9 : minutes - 1;
+    const newTime = (newMinutes * 60) + seconds;
+    onTimeChange(newTime);
+  };
+
+  const handleSecondsChange = (increment: boolean) => {
+    const newSeconds = increment 
+      ? (seconds + 1) % 60 
+      : seconds === 0 ? 59 : seconds - 1;
+    const newTime = (minutes * 60) + newSeconds;
+    onTimeChange(newTime);
+  };
 
   return (
     <>
@@ -48,6 +71,56 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
           </div>
           
           <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm text-gray-400">Timer Control</label>
+              <div className="flex space-x-4">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs text-gray-500">Minutes</label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleMinutesChange(false)}
+                      className="text-neon-red text-4xl font-bold hover:scale-110 transition-transform w-12 h-12 flex items-center justify-center"
+                      aria-label="Decrease minutes"
+                    >
+                      −
+                    </button>
+                    <div className="flex-1 bg-gray-800 rounded-lg py-3 px-4 text-center text-2xl font-bold">
+                      {minutes.toString().padStart(2, '0')}
+                    </div>
+                    <button
+                      onClick={() => handleMinutesChange(true)}
+                      className="text-neon-green text-4xl font-bold hover:scale-110 transition-transform w-12 h-12 flex items-center justify-center"
+                      aria-label="Increase minutes"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs text-gray-500">Seconds</label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleSecondsChange(false)}
+                      className="text-neon-red text-4xl font-bold hover:scale-110 transition-transform w-12 h-12 flex items-center justify-center"
+                      aria-label="Decrease seconds"
+                    >
+                      −
+                    </button>
+                    <div className="flex-1 bg-gray-800 rounded-lg py-3 px-4 text-center text-2xl font-bold">
+                      {seconds.toString().padStart(2, '0')}
+                    </div>
+                    <button
+                      onClick={() => handleSecondsChange(true)}
+                      className="text-neon-green text-4xl font-bold hover:scale-110 transition-transform w-12 h-12 flex items-center justify-center"
+                      aria-label="Increase seconds"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm text-gray-400">Match Type</label>
               <MatchTypeToggle 

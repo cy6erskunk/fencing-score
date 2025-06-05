@@ -23,9 +23,6 @@ const ELIMINATION_CONFIG = {
 };
 
 const Scoreboard: React.FC = () => {
-  const [showResetDrawer, setShowResetDrawer] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  
   const [state, setState] = useState<ScoreboardState>({
     leftFencer: {
       score: 0,
@@ -45,6 +42,9 @@ const Scoreboard: React.FC = () => {
     maxScore: POOL_CONFIG.maxScore,
     isBreak: false
   });
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [showResetDrawer, setShowResetDrawer] = useState(false);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -159,6 +159,13 @@ const Scoreboard: React.FC = () => {
       currentPeriod: 1,
       isRunning: false,
       isBreak: false
+    }));
+  }, []);
+
+  const handleTimeChange = useCallback((newTime: number) => {
+    setState(prev => ({
+      ...prev,
+      timeRemaining: newTime
     }));
   }, []);
 
@@ -344,6 +351,8 @@ const Scoreboard: React.FC = () => {
         hasYellowPassivityCard={hasYellowPassivityCard}
         hasRedPassivityCard={hasRedPassivityCard}
         isEliminationMatch={isEliminationMatch}
+        timeRemaining={state.timeRemaining}
+        onTimeChange={handleTimeChange}
       />
     </div>
   );
