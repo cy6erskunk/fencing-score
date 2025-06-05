@@ -23,9 +23,6 @@ const ELIMINATION_CONFIG = {
 };
 
 const Scoreboard: React.FC = () => {
-  const [showResetDrawer, setShowResetDrawer] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  
   const [state, setState] = useState<ScoreboardState>({
     leftFencer: {
       score: 0,
@@ -45,6 +42,9 @@ const Scoreboard: React.FC = () => {
     maxScore: POOL_CONFIG.maxScore,
     isBreak: false
   });
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [showResetDrawer, setShowResetDrawer] = useState(false);
 
   useEffect(() => {
     let timer: number | undefined;
