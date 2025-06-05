@@ -17,11 +17,15 @@ const POOL_CONFIG = {
 
 const ELIMINATION_CONFIG = {
   maxTime: 180, // 3 minutes in seconds
+  breakTime: 60, // 1 minute break
   maxScore: 15,
   periods: 3
 };
 
 const Scoreboard: React.FC = () => {
+  const [showResetDrawer, setShowResetDrawer] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  
   const [state, setState] = useState<ScoreboardState>({
     leftFencer: {
       score: 0,
@@ -38,11 +42,9 @@ const Scoreboard: React.FC = () => {
     matchType: 'pool',
     currentPeriod: 1,
     maxTime: POOL_CONFIG.maxTime,
-    maxScore: POOL_CONFIG.maxScore
+    maxScore: POOL_CONFIG.maxScore,
+    isBreak: false
   });
-
-  const [showSettings, setShowSettings] = useState(false);
-  const [showResetDrawer, setShowResetDrawer] = useState(false);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -55,27 +57,40 @@ const Scoreboard: React.FC = () => {
         }));
       }, 1000);
     } else if (state.timeRemaining === 0) {
-      setState(prev => ({
-        ...prev,
-        isRunning: false
-      }));
+      setState(prev => {
+        if (prev.matchType === 'elimination' && prev.currentPeriod < 3) {
+          if (prev.isBreak) {
+            // After break, start next period
+            return {
+              ...prev,
+              isRunning: false,
+              isBreak: false,
+              currentPeriod: prev.currentPeriod + 1,
+              timeRemaining: ELIMINATION_CONFIG.maxTime
+            };
+          } else {
+            // Start break
+            return {
+              ...prev,
+              isRunning: false,
+              isBreak: true,
+              timeRemaining: ELIMINATION_CONFIG.breakTime
+            };
+          }
+        } else {
+          // End of match
+          return {
+            ...prev,
+            isRunning: false
+          };
+        }
+      });
     }
     
     return () => {
       if (timer) clearInterval(timer);
     };
   }, [state.isRunning, state.timeRemaining]);
-
-  useEffect(() => {
-    const { leftFencer, rightFencer, maxScore, isRunning } = state;
-    
-    if (isRunning && (leftFencer.score >= maxScore || rightFencer.score >= maxScore)) {
-      setState(prev => ({
-        ...prev,
-        isRunning: false
-      }));
-    }
-  }, [state.leftFencer.score, state.rightFencer.score, state.maxScore, state.isRunning]);
 
   const handleStartPause = useCallback(() => {
     setState(prev => ({
@@ -88,7 +103,9 @@ const Scoreboard: React.FC = () => {
     setState(prev => ({
       ...prev,
       timeRemaining: prev.maxTime,
-      isRunning: false
+      isRunning: false,
+      isBreak: false,
+      currentPeriod: 1
     }));
   }, []);
 
@@ -115,7 +132,8 @@ const Scoreboard: React.FC = () => {
       rightFencer: { score: 0, cards: [], passivityCards: [] },
       timeRemaining: prev.maxTime,
       isRunning: false,
-      currentPeriod: 1
+      currentPeriod: 1,
+      isBreak: false
     }));
   }, []);
 
@@ -139,7 +157,8 @@ const Scoreboard: React.FC = () => {
       leftFencer: { score: 0, cards: [], passivityCards: [] },
       rightFencer: { score: 0, cards: [], passivityCards: [] },
       currentPeriod: 1,
-      isRunning: false
+      isRunning: false,
+      isBreak: false
     }));
   }, []);
 
@@ -290,6 +309,7 @@ const Scoreboard: React.FC = () => {
           currentPeriod={state.currentPeriod} 
           totalPeriods={state.matchType === 'elimination' ? 3 : 1}
           matchType={state.matchType}
+          isBreak={state.isBreak}
         />
         
         <div className="mt-12 flex flex-col items-center space-y-6">

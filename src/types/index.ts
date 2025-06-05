@@ -17,4 +17,5 @@ export interface ScoreboardState {
   currentPeriod: number;
   maxTime: number;
   maxScore: number;
+  isBreak: boolean;
 }
