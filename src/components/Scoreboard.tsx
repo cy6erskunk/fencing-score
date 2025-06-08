@@ -8,6 +8,7 @@ import ResetDrawer from './ResetDrawer';
 import SettingsDrawer from './SettingsDrawer';
 import { MatchType, ScoreboardState, Card, PassivityCard } from '../types';
 import { Settings } from 'lucide-react';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 const POOL_CONFIG = {
   maxTime: 180, // 3 minutes in seconds
@@ -45,6 +46,8 @@ const Scoreboard: React.FC = () => {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showResetDrawer, setShowResetDrawer] = useState(false);
+  
+  useWakeLock(state.isRunning);
 
   useEffect(() => {
     let timer: number | undefined;
