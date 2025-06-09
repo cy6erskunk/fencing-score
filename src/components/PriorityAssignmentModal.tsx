@@ -51,11 +51,21 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-75 transition-opacity z-50" />
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-75 transition-opacity z-50"
+        aria-hidden="true"
+      />
+      <div 
+        className="fixed inset-0 flex items-center justify-center z-50 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="priority-modal-title"
+        aria-describedby="priority-modal-description"
+        tabIndex={-1}
+      >
         <div className="bg-gray-900 rounded-xl p-6 max-w-md w-full space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">Priority Assignment</h2>
+            <h2 id="priority-modal-title" className="text-2xl font-bold text-white">Priority Assignment</h2>
             <button 
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors"
@@ -66,7 +76,7 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
           </div>
           
           <div className="text-center space-y-4">
-            <p className="text-gray-300">
+            <p id="priority-modal-description" className="text-gray-300">
               The score is tied. Assign priority for the overtime bout.
             </p>
             
