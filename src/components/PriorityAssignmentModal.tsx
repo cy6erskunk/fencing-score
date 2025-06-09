@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
+const SPINNING_ANIMATION_DURATION_MS = 2000;
+
 interface PriorityAssignmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,8 +31,8 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
       setTimeout(() => {
         onAssignPriority(randomSide);
         onClose();
-      }, 2000);
-    }, 2000);
+      }, SPINNING_ANIMATION_DURATION_MS);
+    }, SPINNING_ANIMATION_DURATION_MS);
   };
 
   const handleManualAssignment = (side: 'left' | 'right') => {
