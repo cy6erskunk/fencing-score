@@ -5,9 +5,10 @@ interface PeriodIndicatorProps {
   totalPeriods: number;
   matchType: 'pool' | 'elimination';
   isBreak: boolean;
+  isOvertime: boolean;
 }
 
-const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({ currentPeriod, totalPeriods, matchType, isBreak }) => {
+const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({ currentPeriod, totalPeriods, matchType, isBreak, isOvertime }) => {
   if (matchType === 'pool') {
     return null;
   }
@@ -49,6 +50,11 @@ const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({ currentPeriod, totalP
           />
         );
       })}
+      
+      {/* Show overtime dot only for elimination matches if overtime is reached */}
+      {isOvertime && (
+        <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse" aria-label="Overtime" />
+      )}
     </div>
   );
 };

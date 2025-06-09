@@ -18,4 +18,7 @@ export interface ScoreboardState {
   maxTime: number;
   maxScore: number;
   isBreak: boolean;
+  isOvertime: boolean;
+  prioritySide: 'left' | 'right' | null;
+  showPriorityAssignment: boolean;
 }

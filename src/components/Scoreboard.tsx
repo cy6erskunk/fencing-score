@@ -4,8 +4,11 @@ import TimerDisplay from './TimerDisplay';
 import ControlButton from './ControlButton';
 import SwapButton from './SwapButton';
 import PeriodIndicator from './PeriodIndicator';
+import PriorityIndicator from './PriorityIndicator';
+import BoutIndicator from './BoutIndicator';
 import ResetDrawer from './ResetDrawer';
 import SettingsDrawer from './SettingsDrawer';
+import PriorityAssignmentModal from './PriorityAssignmentModal';
 import { MatchType, ScoreboardState, Card, PassivityCard } from '../types';
 import { Settings } from 'lucide-react';
 import { useWakeLock } from '../hooks/useWakeLock';
@@ -21,6 +24,10 @@ const ELIMINATION_CONFIG = {
   breakTime: 60, // 1 minute break
   maxScore: 15,
   periods: 3
+};
+
+const OVERTIME_CONFIG = {
+  maxTime: 60, // 1 minute in seconds
 };
 
 const Scoreboard: React.FC = () => {
@@ -41,7 +48,10 @@ const Scoreboard: React.FC = () => {
     currentPeriod: 1,
     maxTime: POOL_CONFIG.maxTime,
     maxScore: POOL_CONFIG.maxScore,
-    isBreak: false
+    isBreak: false,
+    isOvertime: false,
+    prioritySide: null,
+    showPriorityAssignment: false
   });
 
   const [showSettings, setShowSettings] = useState(false);
@@ -61,6 +71,17 @@ const Scoreboard: React.FC = () => {
       }, 1000);
     } else if (state.timeRemaining === 0) {
       setState(prev => {
+        // Check if scores are tied and we need overtime
+        const scoresAreTied = prev.leftFencer.score === prev.rightFencer.score;
+        
+        if (prev.isOvertime) {
+          // Overtime ended - if still tied, fencer with priority wins
+          return {
+            ...prev,
+            isRunning: false
+          };
+        }
+        
         if (prev.matchType === 'elimination' && prev.currentPeriod < 3) {
           if (prev.isBreak) {
             // After break, start next period
@@ -80,6 +101,13 @@ const Scoreboard: React.FC = () => {
               timeRemaining: ELIMINATION_CONFIG.breakTime
             };
           }
+        } else if (scoresAreTied && !prev.isOvertime) {
+          // Scores are tied at end of regulation - show priority assignment
+          return {
+            ...prev,
+            isRunning: false,
+            showPriorityAssignment: true
+          };
         } else {
           // End of match
           return {
@@ -105,10 +133,10 @@ const Scoreboard: React.FC = () => {
   const handleResetTime = useCallback(() => {
     setState(prev => ({
       ...prev,
-      timeRemaining: prev.maxTime,
+      timeRemaining: prev.isOvertime ? OVERTIME_CONFIG.maxTime : prev.maxTime,
       isRunning: false,
       isBreak: false,
-      currentPeriod: 1
+      currentPeriod: prev.isOvertime ? prev.currentPeriod : 1
     }));
   }, []);
 
@@ -136,7 +164,10 @@ const Scoreboard: React.FC = () => {
       timeRemaining: prev.maxTime,
       isRunning: false,
       currentPeriod: 1,
-      isBreak: false
+      isBreak: false,
+      isOvertime: false,
+      prioritySide: null,
+      showPriorityAssignment: false
     }));
   }, []);
 
@@ -144,7 +175,8 @@ const Scoreboard: React.FC = () => {
     setState(prev => ({
       ...prev,
       leftFencer: prev.rightFencer,
-      rightFencer: prev.leftFencer
+      rightFencer: prev.leftFencer,
+      prioritySide: prev.prioritySide === 'left' ? 'right' : prev.prioritySide === 'right' ? 'left' : null
     }));
   }, []);
 
@@ -161,7 +193,10 @@ const Scoreboard: React.FC = () => {
       rightFencer: { score: 0, cards: [], passivityCards: [] },
       currentPeriod: 1,
       isRunning: false,
-      isBreak: false
+      isBreak: false,
+      isOvertime: false,
+      prioritySide: null,
+      showPriorityAssignment: false
     }));
   }, []);
 
@@ -272,6 +307,16 @@ const Scoreboard: React.FC = () => {
     }));
   }, []);
 
+  const handlePriorityAssignment = useCallback((side: 'left' | 'right') => {
+    setState(prev => ({
+      ...prev,
+      prioritySide: side,
+      isOvertime: true,
+      timeRemaining: OVERTIME_CONFIG.maxTime,
+      showPriorityAssignment: false
+    }));
+  }, []);
+
   const hasYellowPassivityCard = state.leftFencer.passivityCards.includes('pYellow');
   const hasRedPassivityCard = state.leftFencer.passivityCards.includes('pRed');
   const isEliminationMatch = state.matchType === 'elimination';
@@ -313,6 +358,18 @@ const Scoreboard: React.FC = () => {
           />
         </div>
         
+        <PriorityIndicator 
+          prioritySide={state.prioritySide}
+          isOvertime={state.isOvertime}
+        />
+        
+        <BoutIndicator 
+          isOvertime={state.isOvertime}
+          matchType={state.matchType}
+          currentPeriod={state.currentPeriod}
+          isBreak={state.isBreak}
+        />
+        
         <TimerDisplay timeRemaining={state.timeRemaining} />
         
         <PeriodIndicator 
@@ -320,6 +377,7 @@ const Scoreboard: React.FC = () => {
           totalPeriods={state.matchType === 'elimination' ? 3 : 1}
           matchType={state.matchType}
           isBreak={state.isBreak}
+          isOvertime={state.isOvertime}
         />
         
         <div className="mt-12 flex flex-col items-center space-y-6">
@@ -356,6 +414,12 @@ const Scoreboard: React.FC = () => {
         isEliminationMatch={isEliminationMatch}
         timeRemaining={state.timeRemaining}
         onTimeChange={handleTimeChange}
+      />
+
+      <PriorityAssignmentModal
+        isOpen={state.showPriorityAssignment}
+        onClose={() => setState(prev => ({ ...prev, showPriorityAssignment: false }))}
+        onAssignPriority={handlePriorityAssignment}
       />
     </div>
   );
