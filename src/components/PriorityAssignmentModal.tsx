@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 const SPINNING_ANIMATION_DURATION_MS = 2000;
@@ -16,23 +16,31 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
 }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedSide, setSelectedSide] = useState<'left' | 'right' | null>(null);
+  const timeoutRefs = useRef<number[]>([]);
 
   const handleRandomAssignment = () => {
+    // Clear any existing timeouts
+    clearAllTimeouts();
+    
     setIsSpinning(true);
     setSelectedSide(null);
     
     // Simulate spinning animation
-    setTimeout(() => {
+    const spinTimeout = window.setTimeout(() => {
       const randomSide = Math.random() < 0.5 ? 'left' : 'right';
       setSelectedSide(randomSide);
       setIsSpinning(false);
       
       // Auto-confirm after showing result
-      setTimeout(() => {
+      const confirmTimeout = window.setTimeout(() => {
         onAssignPriority(randomSide);
         onClose();
       }, SPINNING_ANIMATION_DURATION_MS);
+      
+      timeoutRefs.current.push(confirmTimeout);
     }, SPINNING_ANIMATION_DURATION_MS);
+    
+    timeoutRefs.current.push(spinTimeout);
   };
 
   const handleManualAssignment = (side: 'left' | 'right') => {
@@ -40,11 +48,22 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
     onClose();
   };
 
+  const clearAllTimeouts = () => {
+    timeoutRefs.current.forEach(clearTimeout);
+    timeoutRefs.current = [];
+  };
+
   useEffect(() => {
     if (isOpen) {
       setIsSpinning(false);
       setSelectedSide(null);
+    } else {
+      clearAllTimeouts();
     }
+    
+    return () => {
+      clearAllTimeouts();
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
