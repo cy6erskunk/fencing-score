@@ -1,4 +1,4 @@
-export type MatchType = 'pool' | 'elimination';
+export type MatchType = 'pool' | 'elimination' | 'team' | 'freeform';
 export type Card = 'yellow' | 'red';
 export type PassivityCard = 'pYellow' | 'pRed';
 
@@ -21,4 +21,5 @@ export interface ScoreboardState {
   isOvertime: boolean;
   prioritySide: 'left' | 'right' | null;
   showPriorityAssignment: boolean;
+  currentBout?: number;
 }
