@@ -3,16 +3,52 @@ import React from 'react';
 interface PeriodIndicatorProps {
   currentPeriod: number;
   totalPeriods: number;
-  matchType: 'pool' | 'elimination';
+  matchType: 'pool' | 'elimination' | 'team' | 'freeform';
   isBreak: boolean;
   isOvertime: boolean;
+  currentBout?: number;
 }
 
-const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({ currentPeriod, totalPeriods, matchType, isBreak, isOvertime }) => {
-  if (matchType === 'pool') {
+const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({ 
+  currentPeriod, 
+  totalPeriods, 
+  matchType, 
+  isBreak, 
+  isOvertime,
+  currentBout 
+}) => {
+  if (matchType === 'pool' || matchType === 'freeform') {
     return null;
   }
+
+  if (matchType === 'team') {
+    return (
+      <div className="flex space-x-1 items-center">
+        {Array.from({ length: 9 }).map((_, index) => {
+          const boutNumber = index + 1;
+          return (
+            <div 
+              key={`bout-${boutNumber}`}
+              className={`h-2 w-6 rounded-full ${
+                boutNumber === (currentBout || 1)
+                  ? 'bg-purple-400' 
+                  : boutNumber < (currentBout || 1)
+                    ? 'bg-gray-400' 
+                    : 'bg-gray-700'
+              }`}
+              aria-label={boutNumber === (currentBout || 1) ? `Current bout ${currentBout || 1}` : `Bout ${boutNumber}`}
+            />
+          );
+        })}
+        
+        {isOvertime && (
+          <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse ml-2" aria-label="Overtime" />
+        )}
+      </div>
+    );
+  }
   
+  // For elimination matches
   return (
     <div className="flex space-x-2 items-center">
       {Array.from({ length: totalPeriods * 2 - 1 }).map((_, index) => {
