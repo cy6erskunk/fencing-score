@@ -21,5 +21,4 @@ export interface ScoreboardState {
   isOvertime: boolean;
   prioritySide: 'left' | 'right' | null;
   showPriorityAssignment: boolean;
-  currentBout?: number;
 }

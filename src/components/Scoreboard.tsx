@@ -63,8 +63,7 @@ const Scoreboard: React.FC = () => {
     isBreak: false,
     isOvertime: false,
     prioritySide: null,
-    showPriorityAssignment: false,
-    currentBout: 1
+    showPriorityAssignment: false
   });
 
   const [showSettings, setShowSettings] = useState(false);
@@ -96,13 +95,16 @@ const Scoreboard: React.FC = () => {
         }
         
         if (prev.matchType === 'team') {
-          if (prev.currentBout === 9 && scoresAreTied) {
+          // Team event logic
+          if (prev.currentPeriod === 9 && scoresAreTied) {
+            // Final bout ended with tied scores - show priority assignment for sudden death
             return {
               ...prev,
               isRunning: false,
               showPriorityAssignment: true
             };
           } else {
+            // Regular bout ended - just stop the timer
             return {
               ...prev,
               isRunning: false
@@ -195,8 +197,7 @@ const Scoreboard: React.FC = () => {
       isBreak: false,
       isOvertime: false,
       prioritySide: null,
-      showPriorityAssignment: false,
-      currentBout: 1
+      showPriorityAssignment: false
     }));
   }, []);
 
@@ -211,7 +212,6 @@ const Scoreboard: React.FC = () => {
 
   const handleMatchTypeChange = useCallback((type: MatchType) => {
     let config;
-    const currentBout = 1;
     
     if (type === 'pool') {
       config = POOL_CONFIG;
@@ -240,8 +240,7 @@ const Scoreboard: React.FC = () => {
       isBreak: false,
       isOvertime: false,
       prioritySide: null,
-      showPriorityAssignment: false,
-      currentBout: type === 'team' ? currentBout : undefined
+      showPriorityAssignment: false
     }));
   }, []);
 
@@ -371,16 +370,16 @@ const Scoreboard: React.FC = () => {
 
   const handleNextBout = useCallback(() => {
     setState(prev => {
-      if (prev.matchType !== 'team' || !prev.currentBout || prev.currentBout >= 9) {
+      if (prev.matchType !== 'team' || prev.currentPeriod >= 9) {
         return prev;
       }
 
-      const nextBout = prev.currentBout + 1;
+      const nextBout = prev.currentPeriod + 1;
       const newMaxScore = TEAM_CONFIG.getMaxScore(nextBout);
 
       return {
         ...prev,
-        currentBout: nextBout,
+        currentPeriod: nextBout,
         maxScore: newMaxScore,
         timeRemaining: TEAM_CONFIG.maxTime,
         isRunning: false,
@@ -452,7 +451,6 @@ const Scoreboard: React.FC = () => {
           matchType={state.matchType}
           currentPeriod={state.currentPeriod}
           isBreak={state.isBreak}
-          currentBout={state.currentBout}
         />
         
         <TimerDisplay timeRemaining={state.timeRemaining} />
@@ -463,7 +461,6 @@ const Scoreboard: React.FC = () => {
           matchType={state.matchType}
           isBreak={state.isBreak}
           isOvertime={state.isOvertime}
-          currentBout={state.currentBout}
         />
         
         <div className="mt-12 flex flex-col items-center space-y-6">
@@ -477,7 +474,7 @@ const Scoreboard: React.FC = () => {
               type="reset" 
               onClick={() => setShowResetDrawer(true)} 
             />
-            {isTeamMatch && state.currentBout && state.currentBout < 9 && (
+            {isTeamMatch && state.currentPeriod < 9 && (
               <button
                 onClick={handleNextBout}
                 className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 py-3 px-8 rounded-lg text-xl font-bold transition-all duration-200"

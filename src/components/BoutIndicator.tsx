@@ -5,7 +5,6 @@ interface BoutIndicatorProps {
   matchType: 'pool' | 'elimination' | 'team' | 'freeform';
   currentPeriod: number;
   isBreak: boolean;
-  currentBout?: number;
 }
 
 interface IndicatorConfig {
@@ -19,8 +18,7 @@ const BoutIndicator: React.FC<BoutIndicatorProps> = ({
   isOvertime, 
   matchType, 
   currentPeriod, 
-  isBreak, 
-  currentBout 
+  isBreak
 }) => {
   const getIndicatorConfig = (): IndicatorConfig => {
     if (isOvertime) {
@@ -52,7 +50,7 @@ const BoutIndicator: React.FC<BoutIndicatorProps> = ({
 
     if (matchType === 'team') {
       return {
-        text: `BOUT ${currentBout || 1}`,
+        text: `BOUT ${currentPeriod}`,
         bgColor: 'bg-purple-500/20',
         borderColor: 'border-purple-500/50',
         textColor: 'text-purple-400'

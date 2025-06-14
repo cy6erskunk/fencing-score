@@ -6,7 +6,6 @@ interface PeriodIndicatorProps {
   matchType: 'pool' | 'elimination' | 'team' | 'freeform';
   isBreak: boolean;
   isOvertime: boolean;
-  currentBout?: number;
 }
 
 const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({ 
@@ -14,8 +13,7 @@ const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({
   totalPeriods, 
   matchType, 
   isBreak, 
-  isOvertime,
-  currentBout 
+  isOvertime
 }) => {
   if (matchType === 'pool' || matchType === 'freeform') {
     return null;
@@ -30,13 +28,13 @@ const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({
             <div 
               key={`bout-${boutNumber}`}
               className={`h-2 w-6 rounded-full ${
-                boutNumber === (currentBout || 1)
+                boutNumber === currentPeriod
                   ? 'bg-purple-400' 
-                  : boutNumber < (currentBout || 1)
+                  : boutNumber < currentPeriod
                     ? 'bg-gray-400' 
                     : 'bg-gray-700'
               }`}
-              aria-label={boutNumber === (currentBout || 1) ? `Current bout ${currentBout || 1}` : `Bout ${boutNumber}`}
+              aria-label={boutNumber === currentPeriod ? `Current bout ${currentPeriod}` : `Bout ${boutNumber}`}
             />
           );
         })}
