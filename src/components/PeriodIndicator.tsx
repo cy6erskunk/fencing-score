@@ -8,6 +8,10 @@ interface PeriodIndicatorProps {
   isOvertime: boolean;
 }
 
+const OvertimeDot: React.FC = () => (
+  <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse" aria-label="Overtime" />
+);
+
 const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({ 
   currentPeriod, 
   totalPeriods, 
@@ -39,9 +43,7 @@ const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({
           );
         })}
         
-        {isOvertime && (
-          <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse ml-2" aria-label="Overtime" />
-        )}
+        {isOvertime && <OvertimeDot/>}
       </div>
     );
   }
@@ -85,10 +87,7 @@ const PeriodIndicator: React.FC<PeriodIndicatorProps> = ({
         );
       })}
       
-      {/* Show overtime dot only for elimination matches if overtime is reached */}
-      {isOvertime && (
-        <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse" aria-label="Overtime" />
-      )}
+      {isOvertime && <OvertimeDot/>}
     </div>
   );
 };
