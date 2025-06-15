@@ -26,6 +26,18 @@ const ELIMINATION_CONFIG = {
   periods: 3
 };
 
+const TEAM_CONFIG = {
+  maxTime: 180, // 3 minutes in seconds
+  totalBouts: 9,
+  getMaxScore: (bout: number) => bout * 5 // Bout 1: 5pts, Bout 2: 10pts, etc.
+};
+
+const FREEFORM_CONFIG = {
+  maxTime: 180, // 3 minutes in seconds
+  maxScore: 999, // No practical limit
+  periods: 1
+};
+
 const OVERTIME_CONFIG = {
   maxTime: 60, // 1 minute in seconds
 };
@@ -82,6 +94,24 @@ const Scoreboard: React.FC = () => {
           };
         }
         
+        if (prev.matchType === 'team') {
+          // Team event logic
+          if (prev.currentPeriod === 9 && scoresAreTied) {
+            // Final bout ended with tied scores - show priority assignment for sudden death
+            return {
+              ...prev,
+              isRunning: false,
+              showPriorityAssignment: true
+            };
+          } else {
+            // Regular bout ended - just stop the timer
+            return {
+              ...prev,
+              isRunning: false
+            };
+          }
+        }
+        
         if (prev.matchType === 'elimination' && prev.currentPeriod < 3) {
           if (prev.isBreak) {
             // After break, start next period
@@ -101,7 +131,7 @@ const Scoreboard: React.FC = () => {
               timeRemaining: ELIMINATION_CONFIG.breakTime
             };
           }
-        } else if (scoresAreTied && !prev.isOvertime) {
+        } else if (scoresAreTied && !prev.isOvertime && (prev.matchType === 'elimination' || prev.matchType === 'freeform')) {
           // Scores are tied at end of regulation - show priority assignment
           return {
             ...prev,
@@ -181,7 +211,21 @@ const Scoreboard: React.FC = () => {
   }, []);
 
   const handleMatchTypeChange = useCallback((type: MatchType) => {
-    const config = type === 'pool' ? POOL_CONFIG : ELIMINATION_CONFIG;
+    let config;
+    
+    if (type === 'pool') {
+      config = POOL_CONFIG;
+    } else if (type === 'elimination') {
+      config = ELIMINATION_CONFIG;
+    } else if (type === 'team') {
+      config = {
+        maxTime: TEAM_CONFIG.maxTime,
+        maxScore: TEAM_CONFIG.getMaxScore(1),
+        periods: 1
+      };
+    } else { // freeform
+      config = FREEFORM_CONFIG;
+    }
     
     setState(prev => ({
       ...prev,
@@ -251,8 +295,8 @@ const Scoreboard: React.FC = () => {
 
   const handleAddPassivityCards = useCallback((card: PassivityCard) => {
     setState(prev => {
-      // Only allow passivity cards in elimination matches
-      if (prev.matchType !== 'elimination') {
+      // Only allow passivity cards in elimination and team matches
+      if (prev.matchType === 'pool' || prev.matchType === 'freeform') {
         return prev;
       }
 
@@ -317,9 +361,48 @@ const Scoreboard: React.FC = () => {
     }));
   }, []);
 
+  const handleShowPriorityAssignment = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      showPriorityAssignment: true
+    }));
+  }, []);
+
+  const handleNextBout = useCallback(() => {
+    setState(prev => {
+      if (prev.matchType !== 'team' || prev.currentPeriod >= 9) {
+        return prev;
+      }
+
+      const nextBout = prev.currentPeriod + 1;
+      const newMaxScore = TEAM_CONFIG.getMaxScore(nextBout);
+
+      return {
+        ...prev,
+        currentPeriod: nextBout,
+        maxScore: newMaxScore,
+        timeRemaining: TEAM_CONFIG.maxTime,
+        isRunning: false,
+        // Reset yellow/red cards but keep passivity cards
+        leftFencer: {
+          ...prev.leftFencer,
+          cards: []
+        },
+        rightFencer: {
+          ...prev.rightFencer,
+          cards: []
+        },
+        isOvertime: false,
+        prioritySide: null
+      };
+    });
+  }, []);
+
   const hasYellowPassivityCard = state.leftFencer.passivityCards.includes('pYellow');
   const hasRedPassivityCard = state.leftFencer.passivityCards.includes('pRed');
   const isEliminationMatch = state.matchType === 'elimination';
+  const isTeamMatch = state.matchType === 'team';
+  const isFreeformMatch = state.matchType === 'freeform';
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-between p-4 sm:p-6">
@@ -386,10 +469,20 @@ const Scoreboard: React.FC = () => {
             onClick={handleStartPause}
             isRunning={state.isRunning}
           />
-          <ControlButton 
-            type="reset" 
-            onClick={() => setShowResetDrawer(true)} 
-          />
+          <div className="flex space-x-4">
+            <ControlButton 
+              type="reset" 
+              onClick={() => setShowResetDrawer(true)} 
+            />
+            {isTeamMatch && state.currentPeriod < 9 && (
+              <button
+                onClick={handleNextBout}
+                className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border-2 border-purple-500/50 py-3 px-8 rounded-lg text-xl font-bold transition-all duration-200"
+              >
+                Next Bout
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -412,8 +505,10 @@ const Scoreboard: React.FC = () => {
         hasYellowPassivityCard={hasYellowPassivityCard}
         hasRedPassivityCard={hasRedPassivityCard}
         isEliminationMatch={isEliminationMatch}
+        isTeamMatch={isTeamMatch}
         timeRemaining={state.timeRemaining}
         onTimeChange={handleTimeChange}
+        onShowPriorityAssignment={isFreeformMatch ? handleShowPriorityAssignment : undefined}
       />
 
       <PriorityAssignmentModal

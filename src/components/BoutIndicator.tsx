@@ -2,7 +2,7 @@ import React from 'react';
 
 interface BoutIndicatorProps {
   isOvertime: boolean;
-  matchType: 'pool' | 'elimination';
+  matchType: 'pool' | 'elimination' | 'team' | 'freeform';
   currentPeriod: number;
   isBreak: boolean;
 }
@@ -14,7 +14,12 @@ interface IndicatorConfig {
   textColor: string;
 }
 
-const BoutIndicator: React.FC<BoutIndicatorProps> = ({ isOvertime, matchType, currentPeriod, isBreak }) => {
+const BoutIndicator: React.FC<BoutIndicatorProps> = ({ 
+  isOvertime, 
+  matchType, 
+  currentPeriod, 
+  isBreak
+}) => {
   const getIndicatorConfig = (): IndicatorConfig => {
     if (isOvertime) {
       return {
@@ -40,6 +45,24 @@ const BoutIndicator: React.FC<BoutIndicatorProps> = ({ isOvertime, matchType, cu
         bgColor: 'bg-gray-700/50',
         borderColor: 'border-gray-600/50',
         textColor: 'text-white'
+      };
+    }
+
+    if (matchType === 'team') {
+      return {
+        text: `BOUT ${currentPeriod}`,
+        bgColor: 'bg-purple-500/20',
+        borderColor: 'border-purple-500/50',
+        textColor: 'text-purple-400'
+      };
+    }
+
+    if (matchType === 'freeform') {
+      return {
+        text: 'FREE-FORM',
+        bgColor: 'bg-cyan-500/20',
+        borderColor: 'border-cyan-500/50',
+        textColor: 'text-cyan-400'
       };
     }
 
