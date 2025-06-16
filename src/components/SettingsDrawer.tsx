@@ -13,8 +13,10 @@ interface SettingsDrawerProps {
   hasYellowPassivityCard: boolean;
   hasRedPassivityCard: boolean;
   isEliminationMatch: boolean;
+  isTeamMatch: boolean;
   timeRemaining: number;
   onTimeChange: (seconds: number) => void;
+  onShowPriorityAssignment?: () => void;
 }
 
 const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
@@ -27,8 +29,10 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   hasYellowPassivityCard,
   hasRedPassivityCard,
   isEliminationMatch,
+  isTeamMatch,
   timeRemaining,
   onTimeChange,
+  onShowPriorityAssignment,
 }) => {
   if (!isOpen) return null;
 
@@ -50,6 +54,8 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
     const newTime = (minutes * 60) + newSeconds;
     onTimeChange(newTime);
   };
+
+  const isFreeformMatch = matchType === 'freeform';
 
   return (
     <>
@@ -132,6 +138,21 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               />
             </div>
 
+            {isFreeformMatch && onShowPriorityAssignment && (
+              <div className="space-y-2">
+                <label className="text-sm text-gray-400">Priority Assignment</label>
+                <button
+                  onClick={() => {
+                    onShowPriorityAssignment();
+                    onClose();
+                  }}
+                  className="w-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border-2 border-yellow-500/50 py-3 px-4 rounded-lg transition-colors"
+                >
+                  Assign Priority
+                </button>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm text-gray-400">Cards</label>
               <div className="grid grid-cols-2 gap-3">
@@ -172,7 +193,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               </div>
             </div>
 
-            {isEliminationMatch && (
+            {(isEliminationMatch || isTeamMatch) && (
               <div className="space-y-2">
                 <label className="text-sm text-gray-400">Passivity Cards (Both Fencers)</label>
                 <div className="flex space-x-2">
