@@ -1,6 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-neon-green: rgb(57 255 20);
+  --color-neon-green-50: rgb(57 255 20 / 0.05);
+  --color-neon-green-100: rgb(57 255 20 / 0.1);
+  --color-neon-green-200: rgb(57 255 20 / 0.2);
+  --color-neon-green-300: rgb(57 255 20 / 0.3);
+  --color-neon-green-400: rgb(57 255 20 / 0.4);
+  --color-neon-green-500: rgb(57 255 20 / 0.5);
+  
+  --color-neon-red: rgb(255 41 41);
+  --color-neon-red-50: rgb(255 41 41 / 0.05);
+  --color-neon-red-100: rgb(255 41 41 / 0.1);
+  --color-neon-red-200: rgb(255 41 41 / 0.2);
+  --color-neon-red-300: rgb(255 41 41 / 0.3);
+  --color-neon-red-400: rgb(255 41 41 / 0.4);
+  --color-neon-red-500: rgb(255 41 41 / 0.5);
+}
 
 body {
   @apply bg-black text-white;
