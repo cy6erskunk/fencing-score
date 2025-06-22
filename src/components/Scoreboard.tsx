@@ -9,9 +9,11 @@ import BoutIndicator from './BoutIndicator';
 import ResetDrawer from './ResetDrawer';
 import SettingsDrawer from './SettingsDrawer';
 import PriorityAssignmentModal from './PriorityAssignmentModal';
-import { MatchType, ScoreboardState, Card, PassivityCard } from '../types';
-import { Settings } from 'lucide-react';
+import QRScannerModal from './QRScannerModal';
+import { MatchType, ScoreboardState, Card, PassivityCard, QRMatchData, QRMatchResult } from '../types';
+import { Settings, QrCode, Send } from 'lucide-react';
 import { useWakeLock } from '../hooks/useWakeLock';
+import { submitMatchResult } from '../utils/api';
 
 const POOL_CONFIG = {
   maxTime: 180, // 3 minutes in seconds
@@ -68,6 +70,10 @@ const Scoreboard: React.FC = () => {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showResetDrawer, setShowResetDrawer] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   
   useWakeLock(state.isRunning);
 
@@ -398,6 +404,72 @@ const Scoreboard: React.FC = () => {
     });
   }, []);
 
+  const handleQRScanSuccess = useCallback((qrData: QRMatchData) => {
+    setState(prev => ({
+      ...prev,
+      qrMatchData: qrData,
+      leftFencerName: qrData.player1,
+      rightFencerName: qrData.player2,
+      leftFencer: { score: 0, cards: [], passivityCards: [] },
+      rightFencer: { score: 0, cards: [], passivityCards: [] },
+      timeRemaining: prev.maxTime,
+      isRunning: false,
+      currentPeriod: 1,
+      isBreak: false,
+      isOvertime: false,
+      prioritySide: null,
+      showPriorityAssignment: false
+    }));
+    setShowQRScanner(false);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+  }, []);
+
+  const handleQRScanError = useCallback((error: string) => {
+    console.error('QR Scan Error:', error);
+    setSubmitError(error);
+  }, []);
+
+  const handleSubmitResult = useCallback(async () => {
+    if (!state.qrMatchData) return;
+
+    const winner = state.leftFencer.score > state.rightFencer.score 
+      ? state.qrMatchData.player1 
+      : state.rightFencer.score > state.leftFencer.score 
+      ? state.qrMatchData.player2 
+      : 'tie';
+
+    const result: QRMatchResult = {
+      matchId: state.qrMatchData.matchId,
+      player1_hits: state.leftFencer.score,
+      player2_hits: state.rightFencer.score,
+      winner
+    };
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await submitMatchResult(state.qrMatchData.submitUrl, result);
+      setSubmitSuccess(true);
+      
+      // Clear QR match data after successful submission
+      setTimeout(() => {
+        setState(prev => ({
+          ...prev,
+          qrMatchData: undefined,
+          leftFencerName: undefined,
+          rightFencerName: undefined
+        }));
+        setSubmitSuccess(false);
+      }, 3000);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to submit result');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [state.qrMatchData, state.leftFencer.score, state.rightFencer.score]);
+
   const hasYellowPassivityCard = state.leftFencer.passivityCards.includes('pYellow');
   const hasRedPassivityCard = state.leftFencer.passivityCards.includes('pRed');
   const isEliminationMatch = state.matchType === 'elimination';
@@ -406,7 +478,26 @@ const Scoreboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-between p-4 sm:p-6">
-      <div className="w-full flex justify-end items-center mb-2">
+      <div className="w-full flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setShowQRScanner(true)}
+            className="p-2 text-cyan-400 hover:text-cyan-300 rounded-full transition-colors"
+            aria-label="Scan QR Code"
+          >
+            <QrCode size={24} />
+          </button>
+          {state.qrMatchData && (
+            <button 
+              onClick={handleSubmitResult}
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+            >
+              <Send size={16} />
+              {isSubmitting ? 'Submitting...' : 'Submit Result'}
+            </button>
+          )}
+        </div>
         <button 
           onClick={() => setShowSettings(true)}
           className="p-2 text-gray-400 hover:text-white rounded-full transition-colors"
@@ -416,6 +507,28 @@ const Scoreboard: React.FC = () => {
         </button>
       </div>
       
+      {state.qrMatchData && (
+        <div className="w-full max-w-2xl mb-4 p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+          <div className="text-center">
+            <div className="text-cyan-400 text-sm mb-1">Tournament Match</div>
+            <div className="text-white font-bold">{state.leftFencerName} vs {state.rightFencerName}</div>
+            <div className="text-gray-400 text-xs mt-1">Round {state.qrMatchData.round}</div>
+          </div>
+        </div>
+      )}
+      
+      {submitSuccess && (
+        <div className="w-full max-w-2xl mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg text-center text-green-400">
+          Result submitted successfully!
+        </div>
+      )}
+      
+      {submitError && (
+        <div className="w-full max-w-2xl mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-center text-red-400">
+          Error: {submitError}
+        </div>
+      )}
+      
       <div className="flex-1 w-full max-w-2xl flex flex-col items-center justify-center">
         <div className="flex justify-between items-center w-full mb-8">
           <ScorePanel 
@@ -424,7 +537,8 @@ const Scoreboard: React.FC = () => {
             maxScore={state.maxScore}
             cards={state.leftFencer.cards}
             passivityCards={state.leftFencer.passivityCards}
-            onScoreChange={handleLeftScoreChange} 
+            onScoreChange={handleLeftScoreChange}
+            fencerName={state.leftFencerName}
           />
           
           <div className="flex flex-col items-center">
@@ -437,7 +551,8 @@ const Scoreboard: React.FC = () => {
             maxScore={state.maxScore}
             cards={state.rightFencer.cards}
             passivityCards={state.rightFencer.passivityCards}
-            onScoreChange={handleRightScoreChange} 
+            onScoreChange={handleRightScoreChange}
+            fencerName={state.rightFencerName}
           />
         </div>
         
@@ -515,6 +630,13 @@ const Scoreboard: React.FC = () => {
         isOpen={state.showPriorityAssignment}
         onClose={() => setState(prev => ({ ...prev, showPriorityAssignment: false }))}
         onAssignPriority={handlePriorityAssignment}
+      />
+      
+      <QRScannerModal
+        isOpen={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+        onScanSuccess={handleQRScanSuccess}
+        onScanError={handleQRScanError}
       />
     </div>
   );
