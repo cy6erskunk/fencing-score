@@ -57,9 +57,9 @@ describe('Scoreboard - Basic Functionality', () => {
       fireEvent.click(rightIncrementButton);
 
       expect(screen.getAllByText('1')).toHaveLength(2); // Both fencers should have score 1
-      expect(screen.getAllByText('1').forEach(element => {
+      screen.getAllByText('1').forEach(element => {
         expect(element).toBeInTheDocument();
-      }));
+      });
     });
 
     it('should decrement score', () => {
