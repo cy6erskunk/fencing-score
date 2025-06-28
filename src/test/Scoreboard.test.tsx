@@ -48,7 +48,7 @@ describe('Scoreboard - Basic Functionality', () => {
       expect(screen.getAllByText('1')).toHaveLength(1); // Only right fencer should have score 1
     });
 
-    it ('should increment both scores independently', () => {
+    it('should increment both scores independently', () => {
       render(<Scoreboard />); 
       const leftIncrementButton = screen.getAllByLabelText('Increment score')[0];
       const rightIncrementButton = screen.getAllByLabelText('Increment score')[1];
@@ -57,9 +57,9 @@ describe('Scoreboard - Basic Functionality', () => {
       fireEvent.click(rightIncrementButton);
 
       expect(screen.getAllByText('1')).toHaveLength(2); // Both fencers should have score 1
-      expect(screen.getAllByText('1').forEach(element => {
+      screen.getAllByText('1').forEach(element => {
         expect(element).toBeInTheDocument();
-      }));
+      });
     });
 
     it('should decrement score', () => {
