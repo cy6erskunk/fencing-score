@@ -8,6 +8,22 @@ export interface PlayerState {
   passivityCards: PassivityCard[];
 }
 
+export interface QRMatchData {
+  matchId: string;
+  player1: string;
+  player2: string;
+  tournamentId: number;
+  round: number;
+  submitUrl: string;
+}
+
+export interface QRMatchResult {
+  matchId: string;
+  player1_hits: number;
+  player2_hits: number;
+  winner: string;
+}
+
 export interface ScoreboardState {
   leftFencer: PlayerState;
   rightFencer: PlayerState;
@@ -21,4 +37,7 @@ export interface ScoreboardState {
   isOvertime: boolean;
   prioritySide: 'left' | 'right' | null;
   showPriorityAssignment: boolean;
+  qrMatchData?: QRMatchData;
+  leftFencerName?: string;
+  rightFencerName?: string;
 }
