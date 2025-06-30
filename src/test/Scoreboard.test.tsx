@@ -137,4 +137,37 @@ describe('Scoreboard - Basic Functionality', () => {
       expect(screen.getByLabelText('reset')).toBeInTheDocument();
     });
   });
+
+  describe('QR Code Functionality', () => {
+    it('should have QR scan button', () => {
+      render(<Scoreboard />);
+      
+      expect(screen.getByLabelText('Scan QR Code')).toBeInTheDocument();
+    });
+
+    it('should open QR scanner modal when QR button is clicked', () => {
+      render(<Scoreboard />);
+      
+      // Verify modal is not open initially
+      expect(screen.queryByRole('dialog', { name: 'Scan QR Code' })).not.toBeInTheDocument();
+      
+      const qrButton = screen.getByLabelText('Scan QR Code');
+      fireEvent.click(qrButton);
+      
+      // Verify modal is now open with proper ARIA attributes
+      const modal = screen.getByRole('dialog', { name: 'Scan QR Code' });
+      expect(modal).toBeInTheDocument();
+      expect(modal).toHaveAttribute('aria-modal', 'true');
+      expect(modal).toHaveAttribute('aria-labelledby', 'qr-scanner-title');
+    });
+
+  });
+
+  describe('Fencer Name Display', () => {
+    it('should not show fencer names initially', () => {
+      render(<Scoreboard />);
+      
+      expect(screen.queryByLabelText(/Fencer name:/)).not.toBeInTheDocument();
+    });
+  });
 });

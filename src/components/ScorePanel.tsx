@@ -53,7 +53,11 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
       <div className="flex flex-col items-center">
         {fencerName && (
           <div className="text-center mb-2">
-            <div className="text-cyan-400 text-sm font-medium truncate max-w-24">
+            <div 
+              className="text-cyan-400 text-sm font-medium truncate max-w-24"
+              aria-label={`Fencer name: ${fencerName}`}
+              title={fencerName}
+            >
               {fencerName}
             </div>
           </div>

@@ -90,13 +90,19 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="qr-scanner-title"
+    >
       <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-md">
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-cyan-400">Scan QR Code</h2>
+          <h2 id="qr-scanner-title" className="text-xl font-bold text-cyan-400">Scan QR Code</h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-white transition-colors"
+            aria-label="Close QR scanner"
           >
             <X size={24} />
           </button>
