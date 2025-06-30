@@ -10,6 +10,7 @@ interface ScorePanelProps {
   cards: Card[];
   passivityCards: PassivityCard[];
   onScoreChange: (value: number) => void;
+  fencerName?: string;
 }
 
 const ScorePanel: React.FC<ScorePanelProps> = ({ 
@@ -18,7 +19,8 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
   maxScore, 
   cards,
   passivityCards,
-  onScoreChange 
+  onScoreChange,
+  fencerName
 }) => {
   const [scoreChangeIndicator, setScoreChangeIndicator] = useState<string | null>(null);
 
@@ -49,6 +51,17 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
     <div className="flex flex-col items-center space-y-6">
       <ScoreButton type="increment" onClick={handleIncrement} />
       <div className="flex flex-col items-center">
+        {fencerName && (
+          <div className="text-center mb-2">
+            <div 
+              className="text-cyan-400 text-sm font-medium truncate max-w-24"
+              aria-label={`Fencer name: ${fencerName}`}
+              title={fencerName}
+            >
+              {fencerName}
+            </div>
+          </div>
+        )}
         <ScoreDisplay score={score} maxScore={maxScore} />
         <div className="flex space-x-1 mt-2">
           {cards.map((card, index) => (
