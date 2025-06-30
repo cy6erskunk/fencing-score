@@ -22,11 +22,13 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'src/test/',
+        'dist/',
+        'coverage/',
         '**/*.d.ts',
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
-        'vite.config.ts',
-        'tailwind.config.js'
+        '**/*.config.{js,ts,mjs,cjs}',
+        '**/*.json'
       ],
     },
   },
