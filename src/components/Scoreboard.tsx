@@ -578,7 +578,7 @@ const Scoreboard: React.FC = () => {
           isOvertime={state.isOvertime}
         />
         
-        <div className="mt-12 flex flex-col items-center space-y-6">
+        <div className="pt-10 flex flex-col items-center space-y-6">
           <ControlButton 
             type="start" 
             onClick={handleStartPause}

@@ -12,7 +12,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ timeRemaining }) => {
   };
 
   return (
-    <div className="text-white text-8xl font-bold tracking-wider">
+    <div className="text-white text-8xl font-bold tracking-wider mb-2">
       {formatTime(timeRemaining)}
     </div>
   );
