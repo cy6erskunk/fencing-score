@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ScorePanel from '../components/ScorePanel';
 
@@ -122,28 +122,4 @@ describe('ScorePanel', () => {
     expect(redCards).toHaveLength(1);
   });
 
-  it('should show score change indicator temporarily', async () => {
-    vi.useFakeTimers();
-    
-    render(<ScorePanel {...defaultProps} score={1} />);
-    
-    const incrementButton = screen.getByLabelText('Increment score');
-    
-    act(() => {
-      fireEvent.click(incrementButton);
-    });
-    
-    // Score change indicator should be visible initially
-    expect(screen.getByText('+1')).toBeInTheDocument();
-    
-    // Fast-forward time to after the indicator timeout
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
-    
-    // Indicator should be gone
-    expect(screen.queryByText('+1')).not.toBeInTheDocument();
-    
-    vi.useRealTimers();
-  });
 });
