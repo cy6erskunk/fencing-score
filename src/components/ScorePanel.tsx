@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ScoreButton from './ScoreButton';
 import ScoreDisplay from './ScoreDisplay';
 import { Card, PassivityCard } from '../types';
@@ -22,28 +22,15 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
   onScoreChange,
   fencerName
 }) => {
-  const [scoreChangeIndicator, setScoreChangeIndicator] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (scoreChangeIndicator) {
-      const timer = setTimeout(() => {
-        setScoreChangeIndicator(null);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [scoreChangeIndicator]);
-
   const handleIncrement = () => {
     if (score < maxScore) {
       onScoreChange(score + 1);
-      setScoreChangeIndicator('+1');
     }
   };
 
   const handleDecrement = () => {
     if (score > 0) {
       onScoreChange(score - 1);
-      setScoreChangeIndicator('-1');
     }
   };
 
@@ -87,16 +74,6 @@ const ScorePanel: React.FC<ScorePanelProps> = ({
         </div>
       </div>
       <ScoreButton type="decrement" onClick={handleDecrement} />
-      
-      {scoreChangeIndicator && (
-        <div 
-          className={`absolute ${side === 'left' ? 'left-20' : 'right-20'} bottom-32 
-                     ${scoreChangeIndicator.startsWith('+') ? 'text-neon-green' : 'text-neon-red'} 
-                     text-3xl font-bold animate-fadeOut`}
-        >
-          {scoreChangeIndicator}
-        </div>
-      )}
     </div>
   );
 };
