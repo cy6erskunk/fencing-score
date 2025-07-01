@@ -14,7 +14,6 @@ interface ScorePanelProps {
 }
 
 const ScorePanel: React.FC<ScorePanelProps> = ({ 
-  side, 
   score, 
   maxScore, 
   cards,
