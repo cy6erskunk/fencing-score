@@ -12,13 +12,14 @@ const ControlButton: React.FC<ControlButtonProps> = ({ onClick, type, isRunning 
       case 'start':
         return {
           className: `bg-neon-green/10 hover:bg-neon-green/20 text-neon-green border-2 border-neon-green/50 
-                     py-6 px-12 rounded-lg text-4xl font-bold transition-all duration-200 
+                     py-12 rounded-lg text-4xl font-bold transition-all duration-200 w-80 
+                     flex items-center justify-center
                      ${isRunning ? 'animate-pulse' : ''}`,
           text: isRunning ? 'Pause' : 'Start'
         };
       case 'reset':
         return {
-          className: 'bg-neon-red/10 hover:bg-neon-red/20 text-neon-red border-2 border-neon-red/50 py-3 px-8 rounded-lg text-xl font-bold transition-all duration-200',
+          className: 'bg-neon-red/10 hover:bg-neon-red/20 text-neon-red border-2 border-neon-red/50 py-4 px-10 rounded-lg text-xl font-bold transition-all duration-200',
           text: 'Reset'
         };
       case 'settings':
