@@ -79,7 +79,7 @@ const BoutIndicator: React.FC<BoutIndicatorProps> = ({
   return (
     <div className="flex items-center justify-center mb-4">
       <div className={`${config.bgColor} border-2 ${config.borderColor} px-4 py-2 rounded-lg`}>
-        <div className={`${config.textColor} text-lg font-bold`}>
+        <div className={`${config.textColor} text-sm font-bold`}>
           {config.text}
         </div>
       </div>
