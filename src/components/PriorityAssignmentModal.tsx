@@ -34,7 +34,7 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
       // Auto-confirm after showing result
       const confirmTimeout = window.setTimeout(() => {
         onAssignPriority(randomSide);
-        onClose();
+        handleClose();
       }, SPINNING_ANIMATION_DURATION_MS);
       
       timeoutRefs.current.push(confirmTimeout);
@@ -45,6 +45,12 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
 
   const handleManualAssignment = (side: 'left' | 'right') => {
     onAssignPriority(side);
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setIsSpinning(false);
+    setSelectedSide(null);
     onClose();
   };
 
@@ -54,10 +60,7 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen) {
-      setIsSpinning(false);
-      setSelectedSide(null);
-    } else {
+    if (!isOpen) {
       clearAllTimeouts();
     }
     
@@ -86,7 +89,7 @@ const PriorityAssignmentModal: React.FC<PriorityAssignmentModalProps> = ({
           <div className="flex justify-between items-center">
             <h2 id="priority-modal-title" className="text-2xl font-bold text-white">Priority Assignment</h2>
             <button 
-              onClick={onClose}
+              onClick={handleClose}
               className="text-gray-400 hover:text-white transition-colors"
               aria-label="Close"
             >
