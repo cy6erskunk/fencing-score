@@ -15,6 +15,19 @@ export interface QRMatchData {
   tournamentId: number;
   round: number;
   submitUrl: string;
+  requiresDeviceRegistration?: boolean;
+  apiBaseUrl?: string;
+}
+
+export interface DeviceRegistrationRequest {
+  name: string;
+  tournamentId: number;
+}
+
+export interface DeviceRegistrationResponse {
+  token: string;
+  deviceId?: string;
+  message?: string;
 }
 
 export interface QRMatchResult {
