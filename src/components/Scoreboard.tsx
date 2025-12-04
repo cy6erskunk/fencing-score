@@ -413,8 +413,8 @@ const Scoreboard: React.FC = () => {
   const handleQRScanSuccess = useCallback((qrData: QRMatchData) => {
     setShowQRScanner(false);
 
-    // Check if device registration is required and if we have a token
-    if (qrData.requiresDeviceRegistration) {
+    // Check if submitter identity is required and if we have a token
+    if (qrData.requireSubmitterIdentity) {
       const existingToken = getToken(qrData.tournamentId);
 
       if (!existingToken) {
@@ -516,8 +516,8 @@ const Scoreboard: React.FC = () => {
     setSubmitError(null);
 
     try {
-      // Get the token if device registration was required
-      const token = state.qrMatchData.requiresDeviceRegistration
+      // Get the token if submitter identity was required
+      const token = state.qrMatchData.requireSubmitterIdentity
         ? getToken(state.qrMatchData.tournamentId) || undefined
         : undefined;
 
