@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { submitMatchResult } from '../utils/api';
-import type { QRMatchResult } from '../types';
+import { submitMatchResult, registerDevice } from '../utils/api';
+import type { QRMatchResult, DeviceRegistrationRequest } from '../types';
 
 describe('API Functions', () => {
   beforeEach(() => {
@@ -101,6 +101,133 @@ describe('API Functions', () => {
           body: JSON.stringify(mockResult)
         })
       );
+    });
+
+    it('should include authorization header when token is provided', async () => {
+      const mockResult: QRMatchResult = {
+        matchId: 'match-123',
+        player1_hits: 5,
+        player2_hits: 3,
+        winner: 'player1'
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ success: true })
+      };
+
+      globalThis.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      await submitMatchResult('https://api.tournament.com/submit', mockResult, 'test-token-123');
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.tournament.com/submit',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer test-token-123'
+          },
+          body: JSON.stringify(mockResult),
+        }
+      );
+    });
+
+    it('should not include authorization header when token is not provided', async () => {
+      const mockResult: QRMatchResult = {
+        matchId: 'match-123',
+        player1_hits: 5,
+        player2_hits: 3,
+        winner: 'player1'
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ success: true })
+      };
+
+      globalThis.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      await submitMatchResult('https://api.tournament.com/submit', mockResult);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.tournament.com/submit',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(mockResult),
+        }
+      );
+    });
+  });
+
+  describe('registerDevice', () => {
+    it('should successfully register device', async () => {
+      const mockRequest: DeviceRegistrationRequest = {
+        name: 'John Doe',
+        tournamentId: 123
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          token: 'test-token-456',
+          deviceId: 'device-789'
+        })
+      };
+
+      globalThis.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const result = await registerDevice('https://api.tournament.com', mockRequest);
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.tournament.com/api/submitter/register',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(mockRequest),
+        }
+      );
+
+      expect(result).toEqual({
+        token: 'test-token-456',
+        deviceId: 'device-789'
+      });
+    });
+
+    it('should throw error for failed registration', async () => {
+      const mockRequest: DeviceRegistrationRequest = {
+        name: 'John Doe',
+        tournamentId: 123
+      };
+
+      const mockResponse = {
+        ok: false,
+        status: 400
+      };
+
+      globalThis.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      await expect(
+        registerDevice('https://api.tournament.com', mockRequest)
+      ).rejects.toThrow('HTTP error! status: 400');
+    });
+
+    it('should throw error for network failure during registration', async () => {
+      const mockRequest: DeviceRegistrationRequest = {
+        name: 'John Doe',
+        tournamentId: 123
+      };
+
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        registerDevice('https://api.tournament.com', mockRequest)
+      ).rejects.toThrow('Network error');
     });
   });
 });
