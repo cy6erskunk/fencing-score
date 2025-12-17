@@ -103,42 +103,13 @@ describe('API Functions', () => {
       );
     });
 
-    it('should include authorization header when token is provided', async () => {
+    it('should submit match result with deviceToken in body', async () => {
       const mockResult: QRMatchResult = {
         matchId: 'match-123',
         player1_hits: 5,
         player2_hits: 3,
-        winner: 'player1'
-      };
-
-      const mockResponse = {
-        ok: true,
-        json: vi.fn().mockResolvedValue({ success: true })
-      };
-
-      globalThis.fetch = vi.fn().mockResolvedValue(mockResponse);
-
-      await submitMatchResult('https://api.tournament.com/submit', mockResult, 'test-token-123');
-
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        'https://api.tournament.com/submit',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-token-123'
-          },
-          body: JSON.stringify(mockResult),
-        }
-      );
-    });
-
-    it('should not include authorization header when token is not provided', async () => {
-      const mockResult: QRMatchResult = {
-        matchId: 'match-123',
-        player1_hits: 5,
-        player2_hits: 3,
-        winner: 'player1'
+        winner: 'player1',
+        deviceToken: 'test-device-token-123'
       };
 
       const mockResponse = {
@@ -166,15 +137,13 @@ describe('API Functions', () => {
   describe('registerDevice', () => {
     it('should successfully register device', async () => {
       const mockRequest: DeviceRegistrationRequest = {
-        name: 'John Doe',
-        tournamentId: 123
+        name: 'John Doe'
       };
 
       const mockResponse = {
         ok: true,
         json: vi.fn().mockResolvedValue({
-          token: 'test-token-456',
-          deviceId: 'device-789'
+          deviceToken: 'test-device-token-456'
         })
       };
 
@@ -194,15 +163,13 @@ describe('API Functions', () => {
       );
 
       expect(result).toEqual({
-        token: 'test-token-456',
-        deviceId: 'device-789'
+        deviceToken: 'test-device-token-456'
       });
     });
 
     it('should throw error for failed registration', async () => {
       const mockRequest: DeviceRegistrationRequest = {
-        name: 'John Doe',
-        tournamentId: 123
+        name: 'John Doe'
       };
 
       const mockResponse = {
@@ -219,8 +186,7 @@ describe('API Functions', () => {
 
     it('should throw error for network failure during registration', async () => {
       const mockRequest: DeviceRegistrationRequest = {
-        name: 'John Doe',
-        tournamentId: 123
+        name: 'John Doe'
       };
 
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));

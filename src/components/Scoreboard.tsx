@@ -415,7 +415,7 @@ const Scoreboard: React.FC = () => {
 
     // Check if submitter identity is required and if we have a token
     if (qrData.requireSubmitterIdentity) {
-      const existingToken = getToken(qrData.tournamentId);
+      const existingToken = getToken();
 
       if (!existingToken) {
         // Show registration modal
@@ -452,7 +452,7 @@ const Scoreboard: React.FC = () => {
   }, []);
 
   const handleDeviceRegistration = useCallback(async (name: string) => {
-    if (!pendingQRData || !pendingQRData.apiBaseUrl) {
+    if (!pendingQRData || !pendingQRData.baseUri) {
       setRegistrationError('Invalid tournament configuration');
       return;
     }
@@ -461,13 +461,12 @@ const Scoreboard: React.FC = () => {
     setRegistrationError(null);
 
     try {
-      const response = await registerDevice(pendingQRData.apiBaseUrl, {
-        name,
-        tournamentId: pendingQRData.tournamentId
+      const response = await registerDevice(pendingQRData.baseUri, {
+        name
       });
 
-      // Save the token
-      saveToken(pendingQRData.tournamentId, response.token);
+      // Save the device token
+      saveToken(response.deviceToken);
 
       // Close registration modal and load match data
       setShowDeviceRegistration(false);
@@ -512,16 +511,19 @@ const Scoreboard: React.FC = () => {
       winner
     };
 
+    // Add device token if submitter identity is required
+    if (state.qrMatchData.requireSubmitterIdentity) {
+      const deviceToken = getToken();
+      if (deviceToken) {
+        result.deviceToken = deviceToken;
+      }
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      // Get the token if submitter identity was required
-      const token = state.qrMatchData.requireSubmitterIdentity
-        ? getToken(state.qrMatchData.tournamentId) || undefined
-        : undefined;
-
-      await submitMatchResult(state.qrMatchData.submitUrl, result, token);
+      await submitMatchResult(state.qrMatchData.submitUrl, result);
       setSubmitSuccess(true);
 
       // Clear QR match data after successful submission

@@ -1,39 +1,26 @@
-const TOKEN_PREFIX = 'tournament_token_';
+const DEVICE_TOKEN_KEY = 'device_token';
 
-export const saveToken = (tournamentId: number, token: string): void => {
+export const saveToken = (token: string): void => {
   try {
-    localStorage.setItem(`${TOKEN_PREFIX}${tournamentId}`, token);
+    localStorage.setItem(DEVICE_TOKEN_KEY, token);
   } catch (error) {
     console.error('Failed to save token:', error);
   }
 };
 
-export const getToken = (tournamentId: number): string | null => {
+export const getToken = (): string | null => {
   try {
-    return localStorage.getItem(`${TOKEN_PREFIX}${tournamentId}`);
+    return localStorage.getItem(DEVICE_TOKEN_KEY);
   } catch (error) {
     console.error('Failed to get token:', error);
     return null;
   }
 };
 
-export const removeToken = (tournamentId: number): void => {
+export const removeToken = (): void => {
   try {
-    localStorage.removeItem(`${TOKEN_PREFIX}${tournamentId}`);
+    localStorage.removeItem(DEVICE_TOKEN_KEY);
   } catch (error) {
     console.error('Failed to remove token:', error);
-  }
-};
-
-export const clearAllTokens = (): void => {
-  try {
-    const keys = Object.keys(localStorage);
-    keys.forEach(key => {
-      if (key.startsWith(TOKEN_PREFIX)) {
-        localStorage.removeItem(key);
-      }
-    });
-  } catch (error) {
-    console.error('Failed to clear tokens:', error);
   }
 };

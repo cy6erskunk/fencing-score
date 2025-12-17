@@ -29,21 +29,14 @@ export const registerDevice = async (
 
 export const submitMatchResult = async (
   submitUrl: string,
-  result: QRMatchResult,
-  token?: string
+  result: QRMatchResult
 ): Promise<void> => {
   try {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     const response = await fetch(submitUrl, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(result),
     });
 
