@@ -15,7 +15,7 @@ import { MatchType, ScoreboardState, Card, PassivityCard, QRMatchData, QRMatchRe
 import { Settings, QrCode, Send } from 'lucide-react';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { submitMatchResult, registerDevice } from '../utils/api';
-import { getToken, saveToken } from '../utils/tokenStorage';
+import { getToken, saveToken, getDeviceName, removeToken } from '../utils/tokenStorage';
 
 const POOL_CONFIG = {
   maxTime: 180, // 3 minutes in seconds
@@ -80,8 +80,15 @@ const Scoreboard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [deviceName, setDeviceName] = useState<string | null>(null);
 
   useWakeLock(state.isRunning);
+
+  // Load device name on mount
+  useEffect(() => {
+    const name = getDeviceName();
+    setDeviceName(name);
+  }, []);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -465,8 +472,9 @@ const Scoreboard: React.FC = () => {
         name
       });
 
-      // Save the device token
-      saveToken(response.deviceToken);
+      // Save the device token and name
+      saveToken(response.deviceToken, name);
+      setDeviceName(name);
 
       // Close registration modal and load match data
       setShowDeviceRegistration(false);
@@ -542,6 +550,11 @@ const Scoreboard: React.FC = () => {
       setIsSubmitting(false);
     }
   }, [state.qrMatchData, state.leftFencer.score, state.rightFencer.score]);
+
+  const handleClearIdentity = useCallback(() => {
+    removeToken();
+    setDeviceName(null);
+  }, []);
 
   const hasYellowPassivityCard = state.leftFencer.passivityCards.includes('pYellow');
   const hasRedPassivityCard = state.leftFencer.passivityCards.includes('pRed');
@@ -697,6 +710,8 @@ const Scoreboard: React.FC = () => {
         timeRemaining={state.timeRemaining}
         onTimeChange={handleTimeChange}
         onShowPriorityAssignment={isFreeformMatch ? handleShowPriorityAssignment : undefined}
+        deviceName={deviceName}
+        onClearIdentity={handleClearIdentity}
       />
 
       <PriorityAssignmentModal

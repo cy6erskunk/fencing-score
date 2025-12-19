@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, UserCircle, Trash2 } from 'lucide-react';
 import { MatchType } from '../types';
 import MatchTypeToggle from './MatchTypeToggle';
 
@@ -17,6 +17,8 @@ interface SettingsDrawerProps {
   timeRemaining: number;
   onTimeChange: (seconds: number) => void;
   onShowPriorityAssignment?: () => void;
+  deviceName: string | null;
+  onClearIdentity: () => void;
 }
 
 const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
@@ -33,6 +35,8 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   timeRemaining,
   onTimeChange,
   onShowPriorityAssignment,
+  deviceName,
+  onClearIdentity,
 }) => {
   if (!isOpen) return null;
 
@@ -219,6 +223,25 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                     }`}
                   >
                     P-Red
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {deviceName && (
+              <div className="space-y-2 pt-4 border-t border-gray-700">
+                <label className="text-sm text-gray-400">Device Identity</label>
+                <div className="bg-gray-800 rounded-lg p-3 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <UserCircle size={20} className="text-cyan-500" />
+                    <span className="text-white font-medium">{deviceName}</span>
+                  </div>
+                  <button
+                    onClick={onClearIdentity}
+                    className="w-full flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 py-2 px-4 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={16} />
+                    Clear Identity
                   </button>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { saveToken, getToken, removeToken } from '../utils/tokenStorage';
+import { saveToken, getToken, getDeviceName, removeToken } from '../utils/tokenStorage';
 
 describe('Token Storage', () => {
   beforeEach(() => {
@@ -16,6 +16,12 @@ describe('Token Storage', () => {
     it('should save device token to localStorage', () => {
       saveToken('test-device-token-123');
       expect(localStorage.getItem('device_token')).toBe('test-device-token-123');
+    });
+
+    it('should save device token and name to localStorage', () => {
+      saveToken('test-device-token-123', 'John Doe');
+      expect(localStorage.getItem('device_token')).toBe('test-device-token-123');
+      expect(localStorage.getItem('device_name')).toBe('John Doe');
     });
 
     it('should overwrite existing token', () => {
@@ -36,11 +42,30 @@ describe('Token Storage', () => {
     });
   });
 
+  describe('getDeviceName', () => {
+    it('should retrieve saved device name', () => {
+      localStorage.setItem('device_name', 'John Doe');
+      expect(getDeviceName()).toBe('John Doe');
+    });
+
+    it('should return null for non-existent device name', () => {
+      expect(getDeviceName()).toBe(null);
+    });
+  });
+
   describe('removeToken', () => {
     it('should remove device token from localStorage', () => {
       localStorage.setItem('device_token', 'test-token');
       removeToken();
       expect(localStorage.getItem('device_token')).toBe(null);
+    });
+
+    it('should remove both device token and name from localStorage', () => {
+      localStorage.setItem('device_token', 'test-token');
+      localStorage.setItem('device_name', 'John Doe');
+      removeToken();
+      expect(localStorage.getItem('device_token')).toBe(null);
+      expect(localStorage.getItem('device_name')).toBe(null);
     });
 
     it('should not affect other items in localStorage', () => {
