@@ -87,7 +87,14 @@ const Scoreboard: React.FC = () => {
   // Load device name on mount
   useEffect(() => {
     const name = getDeviceName();
-    setDeviceName(name);
+    const token = getToken();
+
+    // If we have a token but no name (old registration), show a default name
+    if (token && !name) {
+      setDeviceName('Registered Device');
+    } else {
+      setDeviceName(name);
+    }
   }, []);
 
   useEffect(() => {
