@@ -466,7 +466,7 @@ const Scoreboard: React.FC = () => {
   }, []);
 
   const handleDeviceRegistration = useCallback(async (name: string) => {
-    if (!pendingQRData || !pendingQRData.baseUri) {
+    if (!pendingQRData) {
       setRegistrationError('Invalid tournament configuration');
       return;
     }

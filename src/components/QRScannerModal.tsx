@@ -39,10 +39,11 @@ const QRScannerModal: React.FC<QRScannerModalProps> = ({
           (result) => {
             try {
               const data = JSON.parse(result.data) as QRMatchData;
-              
-              // Validate the QR data structure
-              if (data.matchId && data.player1 && data.player2 && 
-                  data.tournamentId && data.round && data.submitUrl) {
+
+              // Validate all 8 required fields per official spec
+              if (data.matchId && data.player1 && data.player2 &&
+                  data.tournamentId && data.round && data.baseUri &&
+                  data.submitUrl && typeof data.requireSubmitterIdentity === 'boolean') {
                 onScanSuccess(data);
                 scanner.stop();
               } else {

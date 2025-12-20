@@ -14,9 +14,9 @@ export interface QRMatchData {
   player2: string;
   tournamentId: number;
   round: number;
+  baseUri: string;
   submitUrl: string;
-  requireSubmitterIdentity?: boolean;
-  baseUri?: string;
+  requireSubmitterIdentity: boolean;
 }
 
 export interface DeviceRegistrationRequest {
