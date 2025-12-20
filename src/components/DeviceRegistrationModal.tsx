@@ -41,7 +41,12 @@ const DeviceRegistrationModal: React.FC<DeviceRegistrationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-labelledby="device-registration-title"
+      aria-modal="true"
+    >
       <div className="bg-gray-900 rounded-lg max-w-md w-full p-6 relative border border-cyan-500/30">
         {!isRegistering && (
           <button
@@ -55,7 +60,7 @@ const DeviceRegistrationModal: React.FC<DeviceRegistrationModalProps> = ({
 
         <div className="flex items-center gap-3 mb-6">
           <UserCircle size={32} className="text-cyan-500" />
-          <h2 className="text-2xl font-bold text-white">Device Registration</h2>
+          <h2 className="text-2xl font-bold text-white" id="device-registration-title">Device Registration</h2>
         </div>
 
         <p className="text-gray-300 mb-6">

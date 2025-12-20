@@ -45,7 +45,12 @@ const SubmitConfirmationModal: React.FC<SubmitConfirmationModalProps> = ({
   const scoresAreTied = leftScore === rightScore;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-labelledby="submit-confirmation-title"
+      aria-modal="true"
+    >
       <div className="bg-gray-900 rounded-lg max-w-md w-full p-6 relative border border-cyan-500/30">
         {!isSubmitting && (
           <button
@@ -59,7 +64,7 @@ const SubmitConfirmationModal: React.FC<SubmitConfirmationModalProps> = ({
 
         <div className="flex items-center gap-3 mb-6">
           <AlertCircle size={32} className="text-cyan-500" />
-          <h2 className="text-2xl font-bold text-white">Confirm Match Result</h2>
+          <h2 className="text-2xl font-bold text-white" id="submit-confirmation-title">Confirm Match Result</h2>
         </div>
 
         <div className="space-y-4 mb-6">
