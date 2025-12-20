@@ -229,6 +229,6 @@ describe('DeviceRegistrationModal', () => {
     );
 
     const newInput = screen.getByLabelText('Your Name');
-    expect(newInput).toHaveValue('John Doe'); // Note: State persists in this test, but in real usage would be cleared by parent
+    expect(newInput).toHaveValue('');
   });
 });

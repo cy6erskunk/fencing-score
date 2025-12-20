@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, UserCircle } from 'lucide-react';
 
 interface DeviceRegistrationModalProps {
@@ -17,6 +17,12 @@ const DeviceRegistrationModal: React.FC<DeviceRegistrationModalProps> = ({
   error
 }) => {
   const [name, setName] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setName('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
