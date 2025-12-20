@@ -10,10 +10,13 @@ import ResetDrawer from './ResetDrawer';
 import SettingsDrawer from './SettingsDrawer';
 import PriorityAssignmentModal from './PriorityAssignmentModal';
 import QRScannerModal from './QRScannerModal';
+import DeviceRegistrationModal from './DeviceRegistrationModal';
+import SubmitConfirmationModal from './SubmitConfirmationModal';
 import { MatchType, ScoreboardState, Card, PassivityCard, QRMatchData, QRMatchResult } from '../types';
 import { Settings, QrCode, Send } from 'lucide-react';
 import { useWakeLock } from '../hooks/useWakeLock';
-import { submitMatchResult } from '../utils/api';
+import { submitMatchResult, registerDevice } from '../utils/api';
+import { getToken, saveToken, getDeviceName, removeToken } from '../utils/tokenStorage';
 
 const POOL_CONFIG = {
   maxTime: 180, // 3 minutes in seconds
@@ -71,11 +74,30 @@ const Scoreboard: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showResetDrawer, setShowResetDrawer] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showDeviceRegistration, setShowDeviceRegistration] = useState(false);
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [pendingQRData, setPendingQRData] = useState<QRMatchData | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  
+  const [deviceName, setDeviceName] = useState<string | null>(null);
+
   useWakeLock(state.isRunning);
+
+  // Load device name on mount
+  useEffect(() => {
+    const name = getDeviceName();
+    const token = getToken();
+
+    // If we have a token but no name (old registration), show a default name
+    if (token && !name) {
+      setDeviceName('Registered Device');
+    } else {
+      setDeviceName(name);
+    }
+  }, []);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -405,6 +427,22 @@ const Scoreboard: React.FC = () => {
   }, []);
 
   const handleQRScanSuccess = useCallback((qrData: QRMatchData) => {
+    setShowQRScanner(false);
+
+    // Check if submitter identity is required and if we have a token
+    if (qrData.requireSubmitterIdentity) {
+      const existingToken = getToken();
+
+      if (!existingToken) {
+        // Show registration modal
+        setPendingQRData(qrData);
+        setShowDeviceRegistration(true);
+        setRegistrationError(null);
+        return;
+      }
+    }
+
+    // Load match data (either no registration required or we have a token)
     setState(prev => ({
       ...prev,
       qrMatchData: qrData,
@@ -420,7 +458,6 @@ const Scoreboard: React.FC = () => {
       prioritySide: null,
       showPriorityAssignment: false
     }));
-    setShowQRScanner(false);
     setSubmitError(null);
     setSubmitSuccess(false);
   }, []);
@@ -430,14 +467,79 @@ const Scoreboard: React.FC = () => {
     setSubmitError(error);
   }, []);
 
-  const handleSubmitResult = useCallback(async () => {
-    if (!state.qrMatchData) return;
+  const handleDeviceRegistration = useCallback(async (name: string) => {
+    if (!pendingQRData) {
+      setRegistrationError('Invalid tournament configuration');
+      return;
+    }
 
-    const winner = state.leftFencer.score > state.rightFencer.score 
-      ? state.qrMatchData.player1 
-      : state.rightFencer.score > state.leftFencer.score 
-      ? state.qrMatchData.player2 
-      : 'tie';
+    setIsRegistering(true);
+    setRegistrationError(null);
+
+    try {
+      const response = await registerDevice(pendingQRData.baseUri, {
+        name
+      });
+
+      // Save the device token and name
+      saveToken(response.deviceToken, name);
+      setDeviceName(name);
+
+      // Close registration modal and load match data
+      setShowDeviceRegistration(false);
+      setState(prev => ({
+        ...prev,
+        qrMatchData: pendingQRData,
+        leftFencerName: pendingQRData.player1,
+        rightFencerName: pendingQRData.player2,
+        leftFencer: { score: 0, cards: [], passivityCards: [] },
+        rightFencer: { score: 0, cards: [], passivityCards: [] },
+        timeRemaining: prev.maxTime,
+        isRunning: false,
+        currentPeriod: 1,
+        isBreak: false,
+        isOvertime: false,
+        prioritySide: null,
+        showPriorityAssignment: false
+      }));
+      setPendingQRData(null);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+    } catch (error) {
+      setRegistrationError(error instanceof Error ? error.message : 'Failed to register device');
+    } finally {
+      setIsRegistering(false);
+    }
+  }, [pendingQRData]);
+
+  const handleSubmitResult = useCallback(() => {
+    if (!state.qrMatchData) return;
+    // Show confirmation modal instead of submitting directly
+    setShowSubmitConfirmation(true);
+  }, [state.qrMatchData]);
+
+  const getSuggestedWinner = useCallback(() => {
+    if (!state.qrMatchData) return '';
+
+    if (state.leftFencer.score > state.rightFencer.score) {
+      return state.qrMatchData.player1;
+    } else if (state.rightFencer.score > state.leftFencer.score) {
+      return state.qrMatchData.player2;
+    } else {
+      // Scores are tied - use priority to determine winner
+      if (state.prioritySide === 'left') {
+        return state.qrMatchData.player1;
+      } else if (state.prioritySide === 'right') {
+        return state.qrMatchData.player2;
+      } else {
+        // Fallback if no priority is set (shouldn't happen in a real match)
+        return state.qrMatchData.player1;
+      }
+    }
+  }, [state.qrMatchData, state.leftFencer.score, state.rightFencer.score, state.prioritySide]);
+
+  const handleConfirmedSubmit = useCallback(async (winner: string) => {
+    if (!state.qrMatchData) return;
 
     const result: QRMatchResult = {
       matchId: state.qrMatchData.matchId,
@@ -446,13 +548,22 @@ const Scoreboard: React.FC = () => {
       winner
     };
 
+    // Add device token if submitter identity is required
+    if (state.qrMatchData.requireSubmitterIdentity) {
+      const deviceToken = getToken();
+      if (deviceToken) {
+        result.deviceToken = deviceToken;
+      }
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
       await submitMatchResult(state.qrMatchData.submitUrl, result);
       setSubmitSuccess(true);
-      
+      setShowSubmitConfirmation(false);
+
       // Clear QR match data after successful submission
       setTimeout(() => {
         setState(prev => ({
@@ -465,10 +576,16 @@ const Scoreboard: React.FC = () => {
       }, 3000);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Failed to submit result');
+      setShowSubmitConfirmation(false);
     } finally {
       setIsSubmitting(false);
     }
   }, [state.qrMatchData, state.leftFencer.score, state.rightFencer.score]);
+
+  const handleClearIdentity = useCallback(() => {
+    removeToken();
+    setDeviceName(null);
+  }, []);
 
   const hasYellowPassivityCard = state.leftFencer.passivityCards.includes('pYellow');
   const hasRedPassivityCard = state.leftFencer.passivityCards.includes('pRed');
@@ -624,6 +741,8 @@ const Scoreboard: React.FC = () => {
         timeRemaining={state.timeRemaining}
         onTimeChange={handleTimeChange}
         onShowPriorityAssignment={isFreeformMatch ? handleShowPriorityAssignment : undefined}
+        deviceName={deviceName}
+        onClearIdentity={handleClearIdentity}
       />
 
       <PriorityAssignmentModal
@@ -637,6 +756,30 @@ const Scoreboard: React.FC = () => {
         onClose={() => setShowQRScanner(false)}
         onScanSuccess={handleQRScanSuccess}
         onScanError={handleQRScanError}
+      />
+
+      <DeviceRegistrationModal
+        isOpen={showDeviceRegistration}
+        onClose={() => {
+          setShowDeviceRegistration(false);
+          setPendingQRData(null);
+          setRegistrationError(null);
+        }}
+        onRegister={handleDeviceRegistration}
+        isRegistering={isRegistering}
+        error={registrationError || undefined}
+      />
+
+      <SubmitConfirmationModal
+        isOpen={showSubmitConfirmation}
+        onClose={() => setShowSubmitConfirmation(false)}
+        onConfirm={handleConfirmedSubmit}
+        leftFencerName={state.leftFencerName || 'Left Fencer'}
+        rightFencerName={state.rightFencerName || 'Right Fencer'}
+        leftScore={state.leftFencer.score}
+        rightScore={state.rightFencer.score}
+        suggestedWinner={getSuggestedWinner()}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

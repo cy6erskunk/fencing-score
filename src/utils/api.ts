@@ -1,7 +1,33 @@
-import { QRMatchResult } from '../types';
+import { QRMatchResult, DeviceRegistrationRequest, DeviceRegistrationResponse } from '../types';
+
+export const registerDevice = async (
+  apiBaseUrl: string,
+  request: DeviceRegistrationRequest
+): Promise<DeviceRegistrationResponse> => {
+  try {
+    const url = `${apiBaseUrl}/api/submitter/register`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to register device:', error);
+    throw error;
+  }
+};
 
 export const submitMatchResult = async (
-  submitUrl: string, 
+  submitUrl: string,
   result: QRMatchResult
 ): Promise<void> => {
   try {
@@ -17,8 +43,7 @@ export const submitMatchResult = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('Match result submitted successfully:', data);
+    await response.json();
   } catch (error) {
     console.error('Failed to submit match result:', error);
     throw error;

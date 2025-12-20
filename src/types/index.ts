@@ -14,7 +14,17 @@ export interface QRMatchData {
   player2: string;
   tournamentId: number;
   round: number;
+  baseUri: string;
   submitUrl: string;
+  requireSubmitterIdentity: boolean;
+}
+
+export interface DeviceRegistrationRequest {
+  name: string;
+}
+
+export interface DeviceRegistrationResponse {
+  deviceToken: string;
 }
 
 export interface QRMatchResult {
@@ -22,6 +32,7 @@ export interface QRMatchResult {
   player1_hits: number;
   player2_hits: number;
   winner: string;
+  deviceToken?: string;
 }
 
 export interface ScoreboardState {
