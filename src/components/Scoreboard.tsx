@@ -11,6 +11,7 @@ import SettingsDrawer from './SettingsDrawer';
 import PriorityAssignmentModal from './PriorityAssignmentModal';
 import QRScannerModal from './QRScannerModal';
 import DeviceRegistrationModal from './DeviceRegistrationModal';
+import SubmitConfirmationModal from './SubmitConfirmationModal';
 import { MatchType, ScoreboardState, Card, PassivityCard, QRMatchData, QRMatchResult } from '../types';
 import { Settings, QrCode, Send } from 'lucide-react';
 import { useWakeLock } from '../hooks/useWakeLock';
@@ -74,6 +75,7 @@ const Scoreboard: React.FC = () => {
   const [showResetDrawer, setShowResetDrawer] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showDeviceRegistration, setShowDeviceRegistration] = useState(false);
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [pendingQRData, setPendingQRData] = useState<QRMatchData | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const [registrationError, setRegistrationError] = useState<string | null>(null);
@@ -510,14 +512,34 @@ const Scoreboard: React.FC = () => {
     }
   }, [pendingQRData]);
 
-  const handleSubmitResult = useCallback(async () => {
+  const handleSubmitResult = useCallback(() => {
     if (!state.qrMatchData) return;
+    // Show confirmation modal instead of submitting directly
+    setShowSubmitConfirmation(true);
+  }, [state.qrMatchData]);
 
-    const winner = state.leftFencer.score > state.rightFencer.score
-      ? state.qrMatchData.player1
-      : state.rightFencer.score > state.leftFencer.score
-      ? state.qrMatchData.player2
-      : 'tie';
+  const getSuggestedWinner = useCallback(() => {
+    if (!state.qrMatchData) return '';
+
+    if (state.leftFencer.score > state.rightFencer.score) {
+      return state.qrMatchData.player1;
+    } else if (state.rightFencer.score > state.leftFencer.score) {
+      return state.qrMatchData.player2;
+    } else {
+      // Scores are tied - use priority to determine winner
+      if (state.prioritySide === 'left') {
+        return state.qrMatchData.player1;
+      } else if (state.prioritySide === 'right') {
+        return state.qrMatchData.player2;
+      } else {
+        // Fallback if no priority is set (shouldn't happen in a real match)
+        return state.qrMatchData.player1;
+      }
+    }
+  }, [state.qrMatchData, state.leftFencer.score, state.rightFencer.score, state.prioritySide]);
+
+  const handleConfirmedSubmit = useCallback(async (winner: string) => {
+    if (!state.qrMatchData) return;
 
     const result: QRMatchResult = {
       matchId: state.qrMatchData.matchId,
@@ -540,6 +562,7 @@ const Scoreboard: React.FC = () => {
     try {
       await submitMatchResult(state.qrMatchData.submitUrl, result);
       setSubmitSuccess(true);
+      setShowSubmitConfirmation(false);
 
       // Clear QR match data after successful submission
       setTimeout(() => {
@@ -553,6 +576,7 @@ const Scoreboard: React.FC = () => {
       }, 3000);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Failed to submit result');
+      setShowSubmitConfirmation(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -744,6 +768,18 @@ const Scoreboard: React.FC = () => {
         onRegister={handleDeviceRegistration}
         isRegistering={isRegistering}
         error={registrationError || undefined}
+      />
+
+      <SubmitConfirmationModal
+        isOpen={showSubmitConfirmation}
+        onClose={() => setShowSubmitConfirmation(false)}
+        onConfirm={handleConfirmedSubmit}
+        leftFencerName={state.leftFencerName || 'Left Fencer'}
+        rightFencerName={state.rightFencerName || 'Right Fencer'}
+        leftScore={state.leftFencer.score}
+        rightScore={state.rightFencer.score}
+        suggestedWinner={getSuggestedWinner()}
+        isSubmitting={isSubmitting}
       />
     </div>
   );
