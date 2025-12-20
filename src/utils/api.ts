@@ -19,7 +19,6 @@ export const registerDevice = async (
     }
 
     const data = await response.json();
-    console.log('Device registered successfully:', data);
     return data;
   } catch (error) {
     console.error('Failed to register device:', error);
@@ -44,8 +43,7 @@ export const submitMatchResult = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('Match result submitted successfully:', data);
+    await response.json();
   } catch (error) {
     console.error('Failed to submit match result:', error);
     throw error;
