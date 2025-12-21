@@ -44,26 +44,36 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   const seconds = timeRemaining % 60;
 
   const handleMinutesChange = (increment: boolean) => {
-    const newMinutes = increment 
-      ? (minutes + 1) % 10 
+    const newMinutes = increment
+      ? (minutes + 1) % 10
       : minutes === 0 ? 9 : minutes - 1;
     const newTime = (newMinutes * 60) + seconds;
     onTimeChange(newTime);
   };
 
   const handleSecondsChange = (increment: boolean) => {
-    const newSeconds = increment 
-      ? (seconds + 1) % 60 
+    const newSeconds = increment
+      ? (seconds + 1) % 60
       : seconds === 0 ? 59 : seconds - 1;
     const newTime = (minutes * 60) + newSeconds;
     onTimeChange(newTime);
+  };
+
+  const handleAddCard = (side: 'left' | 'right', card: 'yellow' | 'red') => {
+    onAddCard(side, card);
+    onClose();
+  };
+
+  const handleAddPassivityCard = (card: 'pYellow' | 'pRed') => {
+    onAddPassivityCards(card);
+    onClose();
   };
 
   const isFreeformMatch = matchType === 'freeform';
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity z-40"
         onClick={onClose}
       />
@@ -71,7 +81,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
         <div className="bg-gray-900 rounded-b-xl p-4 space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-white">Settings</h2>
-            <button 
+            <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors"
               aria-label="Close"
@@ -79,7 +89,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               <X size={24} />
             </button>
           </div>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm text-gray-400">Timer Control</label>
@@ -133,12 +143,12 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
 
             <div className="space-y-2">
               <label className="text-sm text-gray-400">Match Type</label>
-              <MatchTypeToggle 
-                matchType={matchType} 
+              <MatchTypeToggle
+                matchType={matchType}
                 onChange={(type) => {
                   onMatchTypeChange(type);
                   onClose();
-                }} 
+                }}
               />
             </div>
 
@@ -164,13 +174,13 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <p className="text-sm text-gray-400">Left Fencer</p>
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => onAddCard('left', 'yellow')}
+                      onClick={() => handleAddCard('left', 'yellow')}
                       className="flex-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 py-2 px-4 rounded-lg transition-colors"
                     >
                       Yellow Card
                     </button>
                     <button
-                      onClick={() => onAddCard('left', 'red')}
+                      onClick={() => handleAddCard('left', 'red')}
                       className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-500 py-2 px-4 rounded-lg transition-colors"
                     >
                       Red Card
@@ -181,13 +191,13 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                   <p className="text-sm text-gray-400">Right Fencer</p>
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => onAddCard('right', 'yellow')}
+                      onClick={() => handleAddCard('right', 'yellow')}
                       className="flex-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 py-2 px-4 rounded-lg transition-colors"
                     >
                       Yellow Card
                     </button>
                     <button
-                      onClick={() => onAddCard('right', 'red')}
+                      onClick={() => handleAddCard('right', 'red')}
                       className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-500 py-2 px-4 rounded-lg transition-colors"
                     >
                       Red Card
@@ -202,25 +212,23 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
                 <label className="text-sm text-gray-400">Passivity Cards (Both Fencers)</label>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => onAddPassivityCards('pYellow')}
-                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
-                      hasYellowPassivityCard
-                        ? 'bg-yellow-500 text-black'
-                        : 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500'
-                    }`}
+                    onClick={() => handleAddPassivityCard('pYellow')}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${hasYellowPassivityCard
+                      ? 'bg-yellow-500 text-black'
+                      : 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500'
+                      }`}
                   >
                     P-Yellow
                   </button>
                   <button
-                    onClick={() => onAddPassivityCards('pRed')}
+                    onClick={() => handleAddPassivityCard('pRed')}
                     disabled={!hasYellowPassivityCard}
-                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
-                      hasRedPassivityCard
-                        ? 'bg-red-500 text-white'
-                        : hasYellowPassivityCard
-                          ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500'
-                          : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                    }`}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${hasRedPassivityCard
+                      ? 'bg-red-500 text-white'
+                      : hasYellowPassivityCard
+                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500'
+                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                      }`}
                   >
                     P-Red
                   </button>
