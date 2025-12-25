@@ -14,7 +14,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "lucide-react": "0.561.0",
+    "lucide-react": "0.562.0",
     "qr-scanner": "1.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3"
