@@ -140,8 +140,10 @@ const Scoreboard: React.FC = () => {
           return { ...prev, timeRemaining: 0, isRunning: false };
         });
       }, 1000);
+    } else if (state.isRunning && state.timeRemaining === 0) {
+      setState(prev => ({ ...prev, isRunning: false }));
     }
-    
+
     return () => {
       if (timer) clearInterval(timer);
     };
