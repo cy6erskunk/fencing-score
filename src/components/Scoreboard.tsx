@@ -82,98 +82,64 @@ const Scoreboard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [deviceName, setDeviceName] = useState<string | null>(null);
+  const [deviceName, setDeviceName] = useState<string | null>(() => {
+    const name = getDeviceName();
+    const token = getToken();
+    if (token && !name) return 'Registered Device';
+    return name;
+  });
 
   useWakeLock(state.isRunning);
 
-  // Load device name on mount
-  useEffect(() => {
-    const name = getDeviceName();
-    const token = getToken();
-
-    // If we have a token but no name (old registration), show a default name
-    if (token && !name) {
-      setDeviceName('Registered Device');
-    } else {
-      setDeviceName(name);
-    }
-  }, []);
-
   useEffect(() => {
     let timer: number | undefined;
-    
+
     if (state.isRunning && state.timeRemaining > 0) {
       timer = window.setInterval(() => {
-        setState(prev => ({
-          ...prev,
-          timeRemaining: prev.timeRemaining - 1
-        }));
-      }, 1000);
-    } else if (state.timeRemaining === 0) {
-      setState(prev => {
-        // Check if scores are tied and we need overtime
-        const scoresAreTied = prev.leftFencer.score === prev.rightFencer.score;
-        
-        if (prev.isOvertime) {
-          // Overtime ended - if still tied, fencer with priority wins
-          return {
-            ...prev,
-            isRunning: false
-          };
-        }
-        
-        if (prev.matchType === 'team') {
-          // Team event logic
-          if (prev.currentPeriod === 9 && scoresAreTied) {
-            // Final bout ended with tied scores - show priority assignment for sudden death
-            return {
-              ...prev,
-              isRunning: false,
-              showPriorityAssignment: true
-            };
-          } else {
-            // Regular bout ended - just stop the timer
-            return {
-              ...prev,
-              isRunning: false
-            };
+        setState(prev => {
+          const newTime = prev.timeRemaining - 1;
+          if (newTime > 0) {
+            return { ...prev, timeRemaining: newTime };
           }
-        }
-        
-        if (prev.matchType === 'elimination' && prev.currentPeriod < 3) {
-          if (prev.isBreak) {
-            // After break, start next period
+
+          const scoresAreTied = prev.leftFencer.score === prev.rightFencer.score;
+
+          if (prev.isOvertime) {
+            return { ...prev, timeRemaining: 0, isRunning: false };
+          }
+
+          if (prev.matchType === 'team') {
+            if (prev.currentPeriod === 9 && scoresAreTied) {
+              return { ...prev, timeRemaining: 0, isRunning: false, showPriorityAssignment: true };
+            }
+            return { ...prev, timeRemaining: 0, isRunning: false };
+          }
+
+          if (prev.matchType === 'elimination' && prev.currentPeriod < 3) {
+            if (prev.isBreak) {
+              return {
+                ...prev,
+                timeRemaining: ELIMINATION_CONFIG.maxTime,
+                isRunning: false,
+                isBreak: false,
+                currentPeriod: prev.currentPeriod + 1,
+              };
+            }
             return {
               ...prev,
-              isRunning: false,
-              isBreak: false,
-              currentPeriod: prev.currentPeriod + 1,
-              timeRemaining: ELIMINATION_CONFIG.maxTime
-            };
-          } else {
-            // Start break
-            return {
-              ...prev,
+              timeRemaining: ELIMINATION_CONFIG.breakTime,
               isRunning: false,
               isBreak: true,
-              timeRemaining: ELIMINATION_CONFIG.breakTime
             };
           }
-        } else if (scoresAreTied && !prev.isOvertime && (prev.matchType === 'elimination' || prev.matchType === 'freeform')) {
-          // Scores are tied at end of regulation - show priority assignment
-          return {
-            ...prev,
-            isRunning: false,
-            showPriorityAssignment: true
-          };
-        } else {
-          // End of match
-          return {
-            ...prev,
-            isRunning: false
-          };
-        }
-      });
+
+          if (scoresAreTied && !prev.isOvertime && (prev.matchType === 'elimination' || prev.matchType === 'freeform')) {
+            return { ...prev, timeRemaining: 0, isRunning: false, showPriorityAssignment: true };
+          }
+
+          return { ...prev, timeRemaining: 0, isRunning: false };
+        });
+      }, 1000);
     }
     
     return () => {
