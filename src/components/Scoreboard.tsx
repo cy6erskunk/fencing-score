@@ -141,7 +141,10 @@ const Scoreboard: React.FC = () => {
         });
       }, 1000);
     } else if (state.isRunning && state.timeRemaining === 0) {
-      setState(prev => ({ ...prev, isRunning: false }));
+      const id = window.setTimeout(() => {
+        setState(prev => ({ ...prev, isRunning: false }));
+      }, 0);
+      return () => clearTimeout(id);
     }
 
     return () => {
