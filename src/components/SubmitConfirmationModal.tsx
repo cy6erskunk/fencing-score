@@ -25,10 +25,12 @@ const SubmitConfirmationModal: React.FC<SubmitConfirmationModalProps> = ({
   isSubmitting = false,
 }) => {
   const [selectedWinner, setSelectedWinner] = useState(suggestedWinner);
+  const [prevSuggestedWinner, setPrevSuggestedWinner] = useState(suggestedWinner);
 
-  React.useEffect(() => {
+  if (isOpen && suggestedWinner !== prevSuggestedWinner) {
+    setPrevSuggestedWinner(suggestedWinner);
     setSelectedWinner(suggestedWinner);
-  }, [suggestedWinner]);
+  }
 
   if (!isOpen) return null;
 
